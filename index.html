@@ -13,7 +13,7 @@
     header.app { position: sticky; top: 0; z-index: 20; background: rgba(247,242,233,.96); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 16px 16px 12px; }
     .hero { display: flex; align-items: center; gap: 14px; }
     .logo { width: 64px; height: 64px; flex: 0 0 auto; }
-    .logo svg { display: block; width: 64px; height: 64px; filter: drop-shadow(0 8px 16px rgba(210,120,150,.2)); }
+    .logo img { width: 64px; height: 64px; object-fit: cover; display: block; border-radius: 18px; }
     .hero h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -.045em; line-height: 1.05; }
     .hero p { margin: 5px 0 0; color: var(--muted); font-size: 14px; font-weight: 500; }
     .pills { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 14px 0 2px; }
@@ -60,12 +60,7 @@
 <body>
   <header class="app">
     <div class="hero">
-      <div class="logo" aria-hidden="true">
-        <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-          <rect width="64" height="64" rx="16" fill="#f3b6c8"/>
-          <text x="32" y="46" text-anchor="middle" fill="#ffffff" font-family="Georgia, Times New Roman, serif" font-style="italic" font-size="38" font-weight="600">S</text>
-        </svg>
-      </div>
+      <div class="logo"><img src="logo.png" alt="Sabrina" width="64" height="64" /></div>
       <div>
         <h1>Sabrina Price Watch</h1>
         <p>Compare grocery prices across stores</p>
