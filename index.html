@@ -1,1 +1,56 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/><title>Sabrina Price Watch</title></head><body><p>Loading full app… if you see this, refresh.</p><p><a href="./app.html">Open Sabrina Price Watch</a></p></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Sabrina Price Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#f4f1ea;--paper:#fffdf8;--ink:#1c1914;--muted:#6b6458;--line:#e6e0d4;--green:#1f7a4d;--green-soft:#e7f5ee}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font-family:DM Sans,system-ui,sans-serif}body{padding-bottom:108px}
+header.app{position:sticky;top:0;z-index:20;background:rgba(244,241,234,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 16px 10px}
+.brandbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.logo{width:36px;height:36px;border-radius:10px;background:#1f6b45;color:#fff;display:grid;place-items:center;font-weight:700}
+.brandbar h1{margin:0;font-size:18px;line-height:1.1}.brandbar h1 span{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+header.app h2{margin:8px 0 6px;font-size:28px;letter-spacing:-.03em}
+header.app p{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.4}
+label.field{display:block;font-size:13px;font-weight:600;margin:10px 0 6px}
+.search,.addrow input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:inherit;background:var(--paper)}
+.addrow{display:flex;gap:8px}.addrow input{flex:1}.addrow button{border:0;background:#1c1914;color:#fff;border-radius:12px;padding:10px 14px;font-weight:700}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 0}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600}
+.chip.on{background:#1c1914;color:#fff}
+main{padding:8px 16px 24px;max-width:760px;margin:0 auto}
+.aisle{margin:18px 0 8px;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.name{font-weight:700;font-size:16px}.meta{color:var(--muted);font-size:12px;margin:4px 0 10px}
+.stores{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+button.store{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;min-height:64px;font:inherit}
+button.store .s{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--muted)}
+button.store .u{display:block;font-size:18px;font-weight:700}
+button.store .p{display:block;font-size:11px;color:var(--muted)}
+button.store.best{border-color:var(--green);background:var(--green-soft)}
+button.store.picked{outline:2px solid #1c1914}
+button.store.miss .u{font-size:13px;font-weight:600;color:var(--muted)}
+.cap{margin-top:8px;font-size:12px;color:var(--muted)}
+footer.cart{position:fixed;left:0;right:0;bottom:0;background:#1c1914;color:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+footer.cart .row{display:flex;justify-content:space-between;align-items:center;gap:12px;max-width:760px;margin:0 auto}
+.bags{margin-top:6px;font-size:12px;color:#ddd6c8}
+dialog{border:0;border-radius:16px;padding:18px;width:min(420px,92vw)}
+</style></head><body>
+<header class="app">
+<div class="brandbar"><div style="display:flex;gap:10px;align-items:center"><div class="logo">S</div><h1>Sabrina<span>Price Watch</span></h1></div><div style="color:#6b6458;font-size:12px">Target · Sam's · Whole Foods · Walmart</div></div>
+<h2>Shop the list</h2>
+<p>Big number is price per unit. Green is cheapest. Add a product under Find an item.</p>
+<label class="field" for="q">Find an item</label>
+<input class="search" id="q" placeholder="Avocado, Doritos, ketchup…"/>
+<label class="field" for="newName">Add a product she buys</label>
+<div class="addrow"><input id="newName" placeholder="Type the name, then Add"/><button id="addBtn">Add</button></div>
+</header>
+<div class="chips" id="chips"></div>
+<main id="list"></main>
+<footer class="cart" id="cart"></footer>
+<dialog id="dlg"></dialog>
+<script src="app.js"></script>
+</body></html>
