@@ -1,0 +1,78 @@
+{
+  "asOf": "2026-09-25",
+  "note": "Shelf lookups where listed; typical only when that pack was not listed. notSold = store does not carry a comparable pack.",
+  "offers": {
+    "diet-coke-minis": {
+      "walmart": {"price":6.37,"pack":"10pk 7.5 fl oz","base":75,"uom":"fl oz","kind":"shelf"},
+      "target": {"price":7.49,"pack":"10pk 7.5 fl oz","base":75,"uom":"fl oz","kind":"shelf"},
+      "whole_foods": {"notSold":true},
+      "sams": {"price":19.78,"pack":"30pk 7.5 fl oz","base":225,"uom":"fl oz","kind":"shelf"}
+    },
+    "fiji-24": {
+      "walmart": {"price":25.89,"pack":"24pk 16.9 fl oz","base":405.6,"uom":"fl oz","kind":"shelf"},
+      "target": {"price":5.99,"pack":"6pk 16.9 fl oz","base":101.4,"uom":"fl oz","kind":"shelf"},
+      "whole_foods": {"price":5.99,"pack":"6pk 16.9 fl oz","base":101.4,"uom":"fl oz","kind":"shelf"},
+      "sams": {"price":21.98,"pack":"24pk 16.9 fl oz","base":405.6,"uom":"fl oz","kind":"shelf"}
+    },
+    "hint-water": {
+      "walmart": {"price":13.46,"pack":"12pk 16 fl oz","base":192,"uom":"fl oz","kind":"shelf"},
+      "target": {"price":14.99,"pack":"12pk 16 fl oz","base":192,"uom":"fl oz","kind":"shelf"},
+      "whole_foods": {"price":12.99,"pack":"12pk 16 fl oz","base":192,"uom":"fl oz","kind":"shelf"},
+      "sams": {"price":11.78,"pack":"12pk 16 fl oz","base":192,"uom":"fl oz","kind":"shelf"}
+    },
+    "fairlife-2pct": {
+      "walmart": {"price":4.78,"pack":"52 fl oz","base":52,"uom":"fl oz","kind":"shelf"},
+      "target": {"price":4.79,"pack":"52 fl oz","base":52,"uom":"fl oz","kind":"shelf"},
+      "whole_foods": {"notSold":true},
+      "sams": {"notSold":true}
+    },
+    "kerrygold-oo": {
+      "walmart": {"price":4.96,"pack":"7.5 oz","base":7.5,"uom":"oz","kind":"shelf"},
+      "target": {"price":5.29,"pack":"7.5 oz","base":7.5,"uom":"oz","kind":"shelf"},
+      "whole_foods": {"price":5.99,"pack":"7.5 oz","base":7.5,"uom":"oz","kind":"shelf"},
+      "sams": {"price":10.34,"pack":"17.6 oz Pure Irish","base":17.6,"uom":"oz","kind":"shelf"}
+    },
+    "avocado": {
+      "walmart": {"price":0.65,"pack":"each","base":1,"uom":"ea","kind":"shelf"},
+      "target": {"price":1.19,"pack":"each","base":1,"uom":"ea","kind":"shelf"},
+      "whole_foods": {"price":1.79,"pack":"large each","base":1,"uom":"ea","kind":"shelf"},
+      "sams": {"price":4.23,"pack":"5 ct","base":5,"uom":"ea","kind":"shelf"}
+    },
+    "heinz": {
+      "walmart": {"price":5.58,"pack":"31 oz","base":31,"uom":"oz","kind":"shelf"},
+      "target": {"price":6.99,"pack":"31 oz","base":31,"uom":"oz","kind":"shelf"},
+      "whole_foods": {"price":5.99,"pack":"19 oz","base":19,"uom":"oz","kind":"shelf"},
+      "sams": {"price":9.98,"pack":"2 x 44 oz","base":88,"uom":"oz","kind":"shelf"}
+    },
+    "doritos": {
+      "walmart": {"price":4.24,"pack":"9.25 oz","base":9.25,"uom":"oz","kind":"typical"},
+      "target": {"price":4.59,"pack":"9.25 oz","base":9.25,"uom":"oz","kind":"shelf"},
+      "whole_foods": {"notSold":true},
+      "sams": {"notSold":true}
+    },
+    "olly-pro": {
+      "walmart": {"price":16.97,"pack":"70 ct","base":70,"uom":"ea","kind":"typical"},
+      "target": {"price":18.89,"pack":"70 ct","base":70,"uom":"ea","kind":"shelf"},
+      "whole_foods": {"price":17.79,"pack":"50 ct mango","base":50,"uom":"ea","kind":"shelf"},
+      "sams": {"price":19.88,"pack":"70 ct peach","base":70,"uom":"ea","kind":"shelf"}
+    },
+    "olly-mens": {
+      "walmart": {"price":17.98,"pack":"90 ct","base":90,"uom":"ea","kind":"typical"},
+      "target": {"price":17.99,"pack":"130 ct","base":130,"uom":"ea","kind":"shelf"},
+      "whole_foods": {"price":16.99,"pack":"90 ct","base":90,"uom":"ea","kind":"typical"},
+      "sams": {"price":17.98,"pack":"200 ct","base":200,"uom":"ea","kind":"shelf"}
+    },
+    "natures-own-buns": {
+      "walmart": {"price":3.44,"pack":"8 ct 16 oz","base":8,"uom":"ea","kind":"shelf"},
+      "target": {"price":3.99,"pack":"8 ct","base":8,"uom":"ea","kind":"typical"},
+      "whole_foods": {"notSold":true},
+      "sams": {"notSold":true}
+    },
+    "puffs-plus": {
+      "walmart": {"price":25.00,"pack":"12 cubes 72 ct","base":864,"uom":"ea","kind":"typical"},
+      "target": {"price":11.19,"pack":"6 cubes 72 ct","base":432,"uom":"ea","kind":"shelf"},
+      "whole_foods": {"notSold":true},
+      "sams": {"price":18.34,"pack":"12 cubes 72 ct","base":864,"uom":"ea","kind":"shelf"}
+    }
+  }
+}

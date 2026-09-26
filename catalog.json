@@ -1,0 +1,16 @@
+{
+  "products": [
+    {"id":"diet-coke-minis","aisle":"Drinks","name":"Diet Coke mini cans","brand":"Coca-Cola","packHint":"10 × 7.5 fl oz","buy":2},
+    {"id":"fiji-24","aisle":"Drinks","name":"FIJI Natural Artesian Water","brand":"FIJI","packHint":"24 × 16.9 fl oz","buy":4},
+    {"id":"hint-water","aisle":"Drinks","name":"Hint flavored water","brand":"Hint","packHint":"12 × 16 fl oz","buy":3},
+    {"id":"fairlife-2pct","aisle":"Dairy","name":"Fairlife lactose-free 2% milk","brand":"Fairlife","packHint":"52 fl oz","buy":2},
+    {"id":"kerrygold-oo","aisle":"Dairy","name":"Kerrygold butter with olive oil","brand":"Kerrygold","packHint":"7.5 oz tub","buy":3},
+    {"id":"avocado","aisle":"Fruit","name":"Hass avocado","brand":"","packHint":"each","buy":5},
+    {"id":"heinz","aisle":"Pantry","name":"Heinz Simply ketchup","brand":"Heinz","packHint":"31 oz or 2×44 oz","buy":4},
+    {"id":"doritos","aisle":"Snacks","name":"Doritos Cool Ranch","brand":"Doritos","packHint":"9.25 oz","buy":2},
+    {"id":"olly-pro","aisle":"Health","name":"OLLY adult probiotic + prebiotic","brand":"OLLY","packHint":"70 ct peach","buy":4},
+    {"id":"olly-mens","aisle":"Health","name":"OLLY men's multivitamin","brand":"OLLY","packHint":"200 ct","buy":2},
+    {"id":"natures-own-buns","aisle":"Bakery","name":"Nature's Own brioche hot dog buns","brand":"Nature's Own","packHint":"8 ct / 16 oz","buy":2},
+    {"id":"puffs-plus","aisle":"Household","name":"Puffs Plus Lotion tissues 12 cubes","brand":"Puffs","packHint":"12 boxes × 72","buy":2}
+  ]
+}
