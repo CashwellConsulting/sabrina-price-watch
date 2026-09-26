@@ -792,4 +792,363 @@
       }
     },
     "rhodes-dinner-rolls": {
-      
+      "walmart": {
+        "price": 4.84,
+        "pack": "36 ct",
+        "base": 36.0,
+        "uom": "ea",
+        "kind": "last_paid"
+      },
+      "target": {
+        "price": 5.59,
+        "pack": "48oz/36ct",
+        "base": 48,
+        "uom": "oz",
+        "kind": "shelf",
+        "url": "https://www.target.com/p/rhodes-frozen-dinner-rolls-48oz-36ct/-/A-17090102",
+        "tcin": "17090102",
+        "title": "Rhodes Frozen Dinner Rolls - 48oz/36ct"
+      }
+    },
+    "voortman-choc-wafer": {
+      "walmart": {
+        "price": 3.83,
+        "pack": "9 oz",
+        "base": 9.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "notSold: Target search returned no Voortman chocolate wafer match, including the zero sugar query."
+      }
+    },
+    "voortman-vanilla-wafer": {
+      "walmart": {
+        "price": 3.26,
+        "pack": "10.6 oz",
+        "base": 10.6,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "premium-saltines": {
+      "walmart": {
+        "price": 3.88,
+        "pack": "13.6 oz",
+        "base": 13.6,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "price": 3.69,
+        "kind": "shelf",
+        "pack": "13.6oz Fresh Stacks",
+        "base": 13.6,
+        "uom": "oz",
+        "url": "https://www.target.com/p/premium-original-saltine-crackers-fresh-stacks-13-6oz/-/A-14767464",
+        "tcin": "14767464",
+        "title": "Premium Stacks Original Saltine Crackers Travel Snacks - 13.6oz"
+      }
+    },
+    "la-panzanella-rosemary": {
+      "whole_foods": {
+        "price": 5.99,
+        "pack": "6 oz",
+        "base": 6.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "crunchmaster-rosemary": {
+      "whole_foods": {
+        "price": 3.14,
+        "pack": "3.54 oz",
+        "base": 3.54,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "notSold: Target search returned Crunchmaster multi-seed, avocado toast, pimento cheese, and sea salt crackers, but no rosemary olive oil match."
+      }
+    },
+    "poppy-popcorn": {
+      "whole_foods": {
+        "price": 5.99,
+        "pack": "4 oz",
+        "base": 4.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "nerds-gummy-clusters": {
+      "target": {
+        "price": 3.99,
+        "kind": "shelf",
+        "pack": "8oz",
+        "base": 8,
+        "uom": "oz",
+        "url": "https://www.target.com/p/nerds-gummy-clusters-candy-8oz/-/A-80315521",
+        "tcin": "80315521",
+        "title": "Nerds Gummy Clusters Candy - 8oz"
+      }
+    },
+    "parm-crisps-everything": {
+      "walmart": {
+        "price": 0.8,
+        "pack": "1.75 oz",
+        "base": 1.75,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "365-taco-shells": {
+      "whole_foods": {
+        "price": 3.29,
+        "pack": "5.5 oz",
+        "base": 5.5,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "365 Everyday Value \u2014 Whole Foods exclusive"
+      }
+    },
+    "simply-organic-mild-taco": {
+      "walmart": {
+        "price": 1.67,
+        "pack": "1 oz",
+        "base": 1.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "whole_foods": {
+        "price": 1.99,
+        "pack": "1 oz",
+        "base": 1.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "simply-organic-sw-taco": {
+      "whole_foods": {
+        "price": 1.99,
+        "pack": "1.13 oz",
+        "base": 1.13,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "chef-boyardee-pizza": {
+      "walmart": {
+        "price": 3.97,
+        "pack": "31.85 oz",
+        "base": 31.85,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "notSold: Target search returned Chef Boyardee ravioli and spaghetti products, but no cheese pizza maker kit match."
+      }
+    },
+    "riceselect-jasmati": {
+      "whole_foods": {
+        "price": 11.99,
+        "pack": "32 oz",
+        "base": 32.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "bobs-farro": {
+      "whole_foods": {
+        "price": 9.29,
+        "pack": "24 oz",
+        "base": 24.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "notSold: Target search returned Bob's Red Mill products such as oats and chia seeds, but no farro match."
+      }
+    },
+    "spice-world-garlic": {
+      "walmart": {
+        "price": 3.07,
+        "pack": "6 oz",
+        "base": 6.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "365-peeled-garlic": {
+      "whole_foods": {
+        "price": 4.99,
+        "pack": "6 oz",
+        "base": 6.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "365 Everyday Value \u2014 Whole Foods exclusive"
+      }
+    },
+    "little-sesame-hummus": {
+      "whole_foods": {
+        "price": 5.99,
+        "pack": "8 oz",
+        "base": 8.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "ponzu-ginger-salad": {
+      "whole_foods": {
+        "price": 5.99,
+        "pack": "7.2 oz",
+        "base": 7.2,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "jesse-tallow-fries": {
+      "whole_foods": {
+        "price": 8.99,
+        "pack": "each",
+        "base": 1.0,
+        "uom": "ea",
+        "kind": "last_paid"
+      },
+      "target": {
+        "price": 7.49,
+        "pack": "14oz",
+        "base": 14,
+        "uom": "oz",
+        "kind": "shelf",
+        "url": "https://www.target.com/p/jesse-38-ben-39-s-tallow-38-sea-salt-14oz/-/A-94984521",
+        "tcin": "94984521",
+        "title": "Jesse & Ben's Tallow & Sea Salt House-Cut Fries - 14oz"
+      }
+    },
+    "blue-bunny-cones": {
+      "walmart": {
+        "price": 4.47,
+        "pack": "ea",
+        "base": 1.0,
+        "uom": "ea",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "notSold: Target search returned Blue Bunny Mini Swirls vanilla, caramel, and variety packs, but no good match for chocolate cones."
+      }
+    },
+    "nordic-ultimate-omega": {
+      "target": {
+        "price": 64.56,
+        "kind": "shelf",
+        "pack": "180 count softgels",
+        "base": 180,
+        "uom": "ct",
+        "url": "https://www.target.com/p/nordic-naturals-lemon-omega-3-aids-heart-health-and-immune-support-180-count/-/A-84241656",
+        "tcin": "84241656",
+        "title": "Nordic Naturals Ultimate Omega SoftGels - Concentrated Omega-3 Fish Oil"
+      }
+    },
+    "la-roche-cicaplast": {
+      "target": {
+        "price": 24.99,
+        "pack": "3.38oz",
+        "base": 3.38,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "la-roche-lipikar": {
+      "target": {
+        "price": 16.99,
+        "pack": "6.76 fl oz",
+        "base": 6.76,
+        "uom": "fl oz",
+        "kind": "last_paid"
+      }
+    },
+    "q-tips-375": {
+      "target": {
+        "price": 3.39,
+        "pack": "375ct",
+        "base": 375.0,
+        "uom": "ea",
+        "kind": "last_paid"
+      }
+    },
+    "gmcr-breakfast-blend": {
+      "sams": {
+        "price": 42.98,
+        "pack": "80ct",
+        "base": 80.0,
+        "uom": "ea",
+        "kind": "last_paid"
+      },
+      "target": {
+        "price": 16.79,
+        "pack": "24ct",
+        "base": 24,
+        "uom": "ct",
+        "kind": "shelf",
+        "url": "https://www.target.com/p/green-mountain-coffee-breakfast-blend-keurig-k-cup-coffee-pods-light-roast-24ct/-/A-79582224",
+        "tcin": "79582224",
+        "title": "Green Mountain Coffee Breakfast Blend Keurig K-Cup Coffee Pods - Light Roast - 24ct: Arabica Beans"
+      }
+    },
+    "mm-dog-treats-pb": {
+      "target": {
+        "notSold": true,
+        "note": "Member's Mark \u2014 Sam's Club exclusive"
+      }
+    },
+    "nancys-cottage": {
+      "whole_foods": {
+        "price": 6.29,
+        "pack": "16 oz",
+        "base": 16.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      }
+    },
+    "bob-evans-egg-whites": {
+      "walmart": {
+        "price": 5.87,
+        "pack": "32 oz",
+        "base": 32.0,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "target": {
+        "notSold": true,
+        "note": "notSold: Target search returned no Bob Evans liquid egg whites carton match."
+      }
+    },
+    "blueberries": {
+      "target": {
+        "price": 5.99,
+        "pack": "9.8oz",
+        "base": 9.8,
+        "uom": "oz",
+        "kind": "last_paid"
+      },
+      "walmart": {
+        "price": 2.77,
+        "pack": "ea",
+        "base": 1.0,
+        "uom": "ea",
+        "kind": "last_paid"
+      }
+    }
+  }
+}
