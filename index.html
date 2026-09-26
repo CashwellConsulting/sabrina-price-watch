@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Sabrina Price Watch</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root { --bg:#f6f1e8; --paper:#fffcf7; --ink:#171412; --muted:#8a8178; --line:#eadfd3; --green:#1f7a4d; --green-soft:#e7f5ee; }
     * { box-sizing: border-box; }
@@ -13,8 +12,7 @@
     body { padding-bottom: calc(112px + env(safe-area-inset-bottom)); overflow-x: hidden; }
     header.app { position: sticky; top: 0; z-index: 20; background: rgba(246,241,232,.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 14px 16px 12px; }
     .hero { display: flex; align-items: center; gap: 14px; }
-    .logo { width: 64px; height: 64px; border-radius: 18px; overflow: hidden; background: #f4b3c6; flex: 0 0 auto; box-shadow: 0 8px 18px rgba(210,120,150,.18); }
-    .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .logo { width: 64px; height: 64px; border-radius: 18px; background: #f3b6c8; color: #fff; display: grid; place-items: center; font-family: "Great Vibes", Georgia, serif; font-size: 48px; line-height: 1; box-shadow: 0 8px 18px rgba(210,120,150,.18); flex: 0 0 auto; }
     .hero h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; }
     .hero p { margin: 6px 0 0; color: var(--muted); font-size: 14px; font-weight: 500; }
     .pills { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
@@ -61,7 +59,7 @@
 <body>
   <header class="app">
     <div class="hero">
-      <div class="logo"><img alt="" src="icon.jpg" /></div>
+      <div class="logo" aria-hidden="true">S</div>
       <div>
         <h1>Sabrina Price Watch</h1>
         <p>Compare grocery prices across stores</p>
