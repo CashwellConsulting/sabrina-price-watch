@@ -3,107 +3,146 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#fbf6f3" />
   <title>Sabrina Price Watch</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root { --bg:#f7f2e9; --paper:#fffcf7; --ink:#171412; --muted:#8a8178; --line:#eadfd3; --green:#1f7a4d; --green-soft:#e7f5ee; --blush:#e89aa8; }
+    :root {
+      --bg: #fbf6f3;          /* warm blush-ivory page */
+      --paper: #ffffff;
+      --ink: #2e1f28;         /* deep plum ink */
+      --muted: #8c7b83;
+      --line: #f0e4e3;
+      --blush: #f6d9dd;
+      --blush-soft: #fcedef;
+      --berry: #b0436a;       /* primary accent */
+      --sage: #3f7d5c;        /* "best price" */
+      --sage-soft: #eaf4ee;
+      --shadow: 0 1px 2px rgba(46,31,40,.04), 0 6px 20px rgba(176,67,106,.06);
+      --walmart: #2f7cf6; --target: #cc2a36; --whole_foods: #2f8f4e; --sams: #1d3f73;
+      --display: "Fraunces", Georgia, "Times New Roman", serif;
+      --body: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color-scheme: light;
+    }
     * { box-sizing: border-box; }
-    html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; }
-    body { padding-bottom: calc(112px + env(safe-area-inset-bottom)); overflow-x: hidden; }
-    header.app { position: sticky; top: 0; z-index: 20; background: rgba(247,242,233,.96); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); padding: 16px 16px 12px; }
-    .hero { display: flex; align-items: center; gap: 16px; }
-    .logo {
-      width: 128px; height: 128px; flex: 0 0 auto; overflow: hidden;
-      border-radius: 32px; background: #ffffff;
-      box-shadow: 0 10px 28px rgba(196, 91, 122, 0.28), 0 2px 6px rgba(23, 20, 18, 0.08);
-    }
-    .logo img {
-      width: 128px; height: 128px; object-fit: contain; object-position: center;
-      background: #ffffff; display: block; border-radius: 0;
-    }
-    .hero h1 {
-      margin: 0;
-      font-family: "Playfair Display", Georgia, "Times New Roman", serif;
-      font-size: clamp(22px, 5.5vw, 30px);
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      line-height: 1.15;
-      color: #3a2430;
-    }
-    .hero p { margin: 6px 0 0; color: var(--muted); font-size: 14px; font-weight: 500; }
-    .pills { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin: 14px 0 2px; }
-    .pill { color: #fff; font-size: 12px; font-weight: 700; padding: 8px 6px; border-radius: 999px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .pill.walmart { background: #2f7cf6; }
-    .pill.target { background: #c0392b; }
-    .pill.wf { background: #2f8f4e; }
-    .pill.sams { background: #16325c; }
-    header.app .lede { margin: 8px 0 6px; color: var(--muted); font-size: 12px; }
-    #asOf { font-weight: 600; color: var(--ink); }
-    label.field { display: block; font-size: 13px; font-weight: 600; margin: 10px 0 6px; }
-    .search, .addrow input { width: 100%; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font: inherit; background: #fff; font-size: 16px; }
-    .addrow { display: flex; gap: 8px; }
-    .addrow input { flex: 1; min-width: 0; }
-    .addrow button, .btn { border: 0; background: #171412; color: #fff; border-radius: 14px; padding: 12px 16px; font-weight: 700; font: inherit; cursor: pointer; }
-    .btn.ghost { background: #fff; color: #171412; border: 1px solid var(--line); }
-    .chips { display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px 0; -webkit-overflow-scrolling: touch; }
-    .chip { flex: 0 0 auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 8px 12px; font-size: 13px; font-weight: 600; }
-    .chip.on { background: #171412; color: #fff; }
-    main { padding: 8px 16px 24px; max-width: 760px; margin: 0 auto; }
-    .aisle { margin: 18px 0 8px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
-    .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 10px 0; }
-    .name { font-weight: 700; font-size: 16px; line-height: 1.25; }
-    .meta { color: var(--muted); font-size: 12px; margin: 4px 0 10px; }
-    .stores { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    button.store { text-align: left; border: 1.5px solid var(--line); background: #fff; border-radius: 12px; padding: 10px; min-height: 68px; font: inherit; cursor: pointer; }
-    button.store .s { font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-    button.store .u { display: block; font-size: 18px; font-weight: 700; margin-top: 2px; }
-    button.store .p { display: block; font-size: 11px; color: var(--muted); }
-    button.store.best { border-color: var(--green); background: var(--green-soft); }
-    button.store.picked { outline: 2px solid #171412; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+    body { padding-bottom: calc(108px + env(safe-area-inset-bottom)); overflow-x: hidden; font-size: 15px; line-height: 1.45; }
+    button { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--berry); outline-offset: 2px; }
+
+    /* Hero: scrolls away so the list gets the screen */
+    .hero { display: flex; align-items: center; gap: 14px; padding: calc(18px + env(safe-area-inset-top)) 20px 6px; max-width: 760px; margin: 0 auto; }
+    .logo { width: 60px; height: 60px; flex: 0 0 auto; border-radius: 18px; overflow: hidden; background: #fff; box-shadow: 0 6px 18px rgba(176,67,106,.22); }
+    .logo img { width: 100%; height: 100%; display: block; object-fit: contain; }
+    .hero h1 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 27px; line-height: 1.1; letter-spacing: -.015em; font-variation-settings: "opsz" 72; }
+    .hero h1 em { font-style: italic; color: var(--berry); font-weight: 400; }
+    .hero p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+    #asOf { color: var(--ink); font-weight: 600; white-space: nowrap; }
+
+    /* Sticky tools: search + filters only */
+    .tools { position: sticky; top: 0; z-index: 20; background: rgba(251,246,243,.92); backdrop-filter: saturate(1.4) blur(14px); -webkit-backdrop-filter: saturate(1.4) blur(14px); padding: 10px 0 10px; border-bottom: 1px solid transparent; transition: border-color .2s; }
+    .tools.stuck { border-bottom-color: var(--line); }
+    .searchwrap { position: relative; max-width: 760px; margin: 0 auto; padding: 0 20px; }
+    .searchwrap svg { position: absolute; left: 36px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+    .search { width: 100%; border: 1px solid var(--line); border-radius: 999px; padding: 12px 16px 12px 44px; font: inherit; font-size: 16px; background: var(--paper); color: var(--ink); box-shadow: var(--shadow); }
+    .search::placeholder, .addrow input::placeholder { color: #b3a4aa; }
+    .search:focus, .addrow input:focus { outline: none; border-color: var(--berry); box-shadow: 0 0 0 4px var(--blush-soft); }
+    .chips { display: flex; gap: 6px; overflow-x: auto; padding: 10px 20px 2px; max-width: 760px; margin: 0 auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 7px 13px; font-size: 13px; font-weight: 600; color: var(--ink); cursor: pointer; }
+    .chip.on { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+    main { padding: 4px 20px 16px; max-width: 760px; margin: 0 auto; }
+    .aisle { display: flex; align-items: baseline; gap: 8px; margin: 22px 2px 8px; font-family: var(--display); font-style: italic; font-size: 20px; font-weight: 500; }
+    .aisle small { font-family: var(--body); font-style: normal; font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    .card { background: var(--paper); border-radius: 20px; padding: 16px; margin: 10px 0; box-shadow: var(--shadow); border: 1px solid rgba(240,228,227,.7); }
+    .brand { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--berry); margin-bottom: 2px; }
+    .name { font-family: var(--display); font-weight: 500; font-size: 19px; line-height: 1.2; letter-spacing: -.01em; font-variation-settings: "opsz" 36; }
+    .meta { color: var(--muted); font-size: 12.5px; margin: 3px 0 12px; }
+    .pendtag { display: inline-block; background: var(--blush-soft); color: var(--berry); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+    .meta .pendtag:not(:first-child) { margin-left: 6px; }
+
+    .stores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    button.store { position: relative; min-width: 0; text-align: left; border: 1.5px solid var(--line); background: var(--paper); border-radius: 14px; padding: 10px 11px; min-height: 72px; cursor: pointer; transition: border-color .15s, background .15s, transform .1s; }
+    button.store:active { transform: scale(.98); }
+    button.store .s { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink); }
+    button.store .s i { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; background: var(--dot, var(--muted)); }
+    button.store .u { display: block; font-size: 18px; font-weight: 700; margin-top: 4px; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+    button.store .u small { font-size: 12px; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+    button.store .p { display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    button.store.picked .p { padding-right: 24px; }
+    button.store.best { border-color: var(--sage); background: var(--sage-soft); }
+    button.store.best::after { content: "Best price"; position: absolute; top: -9px; right: 10px; background: var(--sage); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .03em; padding: 2px 8px; border-radius: 99px; }
+    button.store.picked { border-color: var(--berry); box-shadow: 0 0 0 1.5px var(--berry) inset; }
+    button.store.picked::before { content: "✓"; position: absolute; bottom: 9px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: var(--berry); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+    button.store.miss { background: #fdfafa; border-style: dashed; }
     button.store.miss .u { font-size: 13px; font-weight: 600; color: var(--muted); }
-    .cap { margin-top: 8px; font-size: 12px; color: var(--muted); }
-    .patch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    footer.cart { position: fixed; left: 0; right: 0; bottom: 0; background: #171412; color: #fff; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
-    footer.cart .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 760px; margin: 0 auto; }
-    .bags { margin-top: 6px; font-size: 12px; color: #ddd6c8; }
-    .empty, .err { padding: 32px 8px; text-align: center; color: var(--muted); }
-    dialog { border: 0; border-radius: 16px; padding: 18px; width: min(420px, 92vw); }
-    dialog::backdrop { background: rgba(0,0,0,.35); }
-    dialog input, dialog select { width: 100%; padding: 12px; margin: 6px 0; border-radius: 10px; border: 1px solid var(--line); font: inherit; font-size: 16px; }
-    @media (max-width: 380px) {
-      .logo, .logo img { width: 104px; height: 104px; }
-      .logo { border-radius: 26px; }
-    }
+    button.store:disabled { cursor: default; opacity: .7; }
+    .cap { margin-top: 10px; font-size: 12px; color: var(--muted); }
+    .patch { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .btn { border: 0; background: var(--ink); color: #fff; border-radius: 999px; padding: 11px 18px; font-weight: 600; font-size: 14px; cursor: pointer; }
+    .btn.ghost { background: var(--paper); color: var(--ink); border: 1px solid var(--line); }
+    .btn.berry { background: var(--berry); }
+
+    .addcard { background: var(--blush-soft); border: 1px dashed #e8c3cb; border-radius: 20px; padding: 16px; margin: 22px 0 8px; box-shadow: none; }
+    .addcard h2 { margin: 0 0 2px; font-family: var(--display); font-weight: 500; font-size: 18px; }
+    .addcard p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+    .addrow { display: flex; gap: 8px; }
+    .addrow input { flex: 1; min-width: 0; border: 1px solid #efd6db; border-radius: 999px; padding: 11px 16px; font: inherit; font-size: 16px; background: var(--paper); color: var(--ink); }
+
+    footer.cart { position: fixed; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 30; background: var(--ink); color: #fff; border-radius: 22px; padding: 12px 12px 12px 18px; box-shadow: 0 12px 32px rgba(46,31,40,.28); max-width: 736px; margin: 0 auto; }
+    footer.cart .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    footer.cart b { font-size: 16px; font-variant-numeric: tabular-nums; }
+    .bags { margin-top: 3px; font-size: 12px; color: #d9c7cf; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+    .bags span { display: inline-flex; align-items: center; gap: 5px; }
+    .bags i { width: 7px; height: 7px; border-radius: 50%; }
+    footer.cart .btn { background: rgba(255,255,255,.12); color: #fff; padding: 9px 14px; font-size: 13px; }
+
+    .empty, .err { padding: 40px 8px; text-align: center; color: var(--muted); }
+    .empty b { display: block; font-family: var(--display); font-style: italic; font-weight: 500; font-size: 20px; color: var(--ink); margin-bottom: 4px; }
+
+    dialog { border: 0; border-radius: 22px; padding: 20px; width: min(420px, 92vw); color: var(--ink); box-shadow: 0 24px 60px rgba(46,31,40,.25); }
+    dialog::backdrop { background: rgba(46,31,40,.35); backdrop-filter: blur(2px); }
+    dialog h3 { margin: 0; font-family: var(--display); font-weight: 500; font-size: 21px; }
+    dialog input, dialog select { width: 100%; padding: 12px 14px; margin: 5px 0; border-radius: 12px; border: 1px solid var(--line); font: inherit; font-size: 16px; background: #fff; color: var(--ink); }
+    dialog input::-webkit-outer-spin-button, dialog input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    dialog input[type=number] { -moz-appearance: textfield; }
+    dialog .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
   </style>
 </head>
 <body>
-  <header class="app">
-    <div class="hero">
-      <div class="logo"><img src="sabrina-s.svg?v=white1" alt="Sabrina" width="128" height="128" /></div>
-      <div>
-        <h1>Sabrina Price Watch</h1>
-        <p>Compare grocery prices across stores</p>
-      </div>
-    </div>
-    <div class="pills">
-      <span class="pill walmart">Walmart</span>
-      <span class="pill target">Target</span>
-      <span class="pill wf">Whole Foods</span>
-      <span class="pill sams">Sam’s</span>
-    </div>
-    <p class="lede">Unit price. Green is cheapest. Prices as of <span id="asOf">…</span>.</p>
-    <label class="field" for="q">Find an item</label>
-    <input class="search" id="q" placeholder="Avocado, Doritos, ketchup…" />
-    <label class="field" for="newName">Add a product she buys</label>
-    <div class="addrow">
-      <input id="newName" placeholder="Type the name, then Add" />
-      <button id="addBtn" type="button">Add</button>
+  <header class="hero">
+    <div class="logo"><img src="sabrina-s.svg?v=white1" alt="" width="60" height="60" /></div>
+    <div>
+      <h1>Sabrina <em>Price Watch</em></h1>
+      <p>Best unit price at four stores · updated <span id="asOf">…</span></p>
     </div>
   </header>
-  <div class="chips" id="chips"></div>
-  <main id="list"><p class="lede" style="padding:16px">Loading catalog…</p></main>
+  <div class="tools" id="tools">
+    <div class="searchwrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input class="search" id="q" type="search" placeholder="Search avocado, Doritos, ketchup…" aria-label="Find an item" autocomplete="off" />
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <main id="list"><p class="empty">Loading her list…</p></main>
+  <section style="max-width:760px;margin:0 auto;padding:0 20px">
+    <div class="addcard">
+      <h2>Don’t see something?</h2>
+      <p>Add it here, then tap a store to enter its price.</p>
+      <div class="addrow">
+        <input id="newName" placeholder="e.g. Greek yogurt" aria-label="New product name" />
+        <button id="addBtn" type="button" class="btn berry">Add</button>
+      </div>
+    </div>
+  </section>
   <footer class="cart" id="cart"></footer>
   <dialog id="dlg"></dialog>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
