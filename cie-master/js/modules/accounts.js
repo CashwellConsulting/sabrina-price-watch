@@ -22,6 +22,7 @@
       return `
       <h2>${esc(a.name)}</h2>
       <div class="row" style="margin-top:6px"><span class="tag">${esc(CIE.stageLabel(a.stage))}</span><span class="tag">${esc(CIE.segmentName(ws, a.segment))}</span><span class="tag">${esc(a.state || '—')}</span>${a.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      ${a.facilityId && CIE.qualityData && CIE.qualityData(ws) ? `<div class="row" style="margin-top:10px"><button class="btn primary sm" data-hai="${esc(a.facilityId)}">Show HAI profile →</button></div>` : ''}
       <section><h3>Bottom line</h3><div class="bottomline">${esc(a.bottomLine || auto)}</div>${a.bottomLine ? `<p class="small muted" style="margin-top:6px">${esc(auto)}</p>` : ''}</section>
 
       <section><h3>Why it ranks here</h3>
@@ -75,6 +76,7 @@
         <label class="field" style="margin-top:8px">Bottom line override<input data-f="bottomLine" value="${esc(a.bottomLine || '')}" placeholder="Leave blank to use the computed line"></label></section>`;
     };
     const bind = (d) => {
+      d.addEventListener('click', (e) => { const h = e.target.getAttribute && e.target.getAttribute('data-hai'); if (h) CIE.openFacility(ctx, h); });
       d.addEventListener('change', (e) => {
         const t = e.target;
         if (t.dataset.dim) {

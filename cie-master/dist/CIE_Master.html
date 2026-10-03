@@ -25,6 +25,7 @@
   --seq-1: #cde2fb; --seq-2: #9ec5f4; --seq-3: #6da7ec; --seq-4: #3987e5; --seq-5: #256abf; --seq-6: #184f95; --seq-7: #0d366b;
   --good: #0ca30c; --warning: #fab219; --serious: #ec835a; --critical: #d03b3b;
   --good-ink: #006300;
+  --div-b3: #256abf; --div-b2: #6da7ec; --div-b1: #b7d3f6; --div-mid: #f0efec; --div-r1: #f6c7c6; --div-r2: #e88180; --div-r3: #c93a3a;
   --unknown-hatch: repeating-linear-gradient(45deg, #d9d8d2 0 4px, transparent 4px 8px);
   --radius: 10px;
   --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.04);
@@ -41,6 +42,7 @@
     --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
     --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf; --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
     --good-ink: #0ca30c;
+    --div-b3: #3987e5; --div-b2: #1c5cab; --div-b1: #104281; --div-mid: #383835; --div-r1: #6b2626; --div-r2: #a83434; --div-r3: #e66767;
     --unknown-hatch: repeating-linear-gradient(45deg, #3a3a37 0 4px, transparent 4px 8px);
     --shadow: none;
   }
@@ -55,6 +57,7 @@
   --s5: #d55181; --s6: #008300; --s7: #9085e9; --s8: #e66767;
   --seq-1: #104281; --seq-2: #184f95; --seq-3: #1c5cab; --seq-4: #256abf; --seq-5: #3987e5; --seq-6: #6da7ec; --seq-7: #9ec5f4;
   --good-ink: #0ca30c;
+  --div-b3: #3987e5; --div-b2: #1c5cab; --div-b1: #104281; --div-mid: #383835; --div-r1: #6b2626; --div-r2: #a83434; --div-r3: #e66767;
   --unknown-hatch: repeating-linear-gradient(45deg, #3a3a37 0 4px, transparent 4px 8px);
   --shadow: none;
 }
@@ -212,6 +215,28 @@ td input[type="number"] { width: 90px; }
 .modal .row { margin-top: 12px; justify-content: flex-end; }
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--surface); padding: 9px 16px; border-radius: 8px; z-index: 60; font-size: 13px; }
 
+/* ---------- HAI / SIR cells ---------- */
+.sir { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+td.sir, i.sir { background: var(--surface-2); }
+.sir.b3 { background: var(--div-b3); color: #fff; } .sir.b2 { background: var(--div-b2); color: #fff; } .sir.b1 { background: var(--div-b1); }
+.sir.mid { background: var(--div-mid); } .sir.r1 { background: var(--div-r1); } .sir.r2 { background: var(--div-r2); color: #fff; } .sir.r3 { background: var(--div-r3); color: #fff; }
+.sir.na { color: var(--muted); font-weight: 400; }
+i.sir { display: inline-block; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+table.hai td, table.hai th { padding: 7px 8px; }
+table.hai td.sir { border-left: 2px solid var(--surface); }
+.drawer.wide { width: min(980px, 100vw); }
+.present { position: fixed; inset: 0; z-index: 40; background: var(--page); overflow-y: auto; }
+.present-bar { position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 24px; background: var(--surface); border-bottom: 1px solid var(--border); z-index: 1; }
+.present-body { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.present-head h2 { font-size: 30px; }
+@media print {
+  body > *:not(.present) { display: none !important; }
+  .present { position: static; overflow: visible; }
+  .present-bar { display: none; }
+  .card { break-inside: avoid; box-shadow: none; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 820px) {
@@ -361,6 +386,7 @@ td input[type="number"] { width: 90px; }
       glossary: [],
       decisions: [],
       custom: [],
+      datasets: {},
     };
   };
 
@@ -385,13 +411,48 @@ td input[type="number"] { width: 90px; }
 
   /* ---------------- workspace persistence ---------------- */
   CIE.listWorkspaces = () => store.get(KEY_INDEX, []);
-  CIE.loadWorkspace = (id) => {
+  // Large tables (ws.datasets, e.g. thousands of facilities) live in IndexedDB; the rest in localStorage.
+  const idb = (CIE.idb = {
+    db: null,
+    open() {
+      if (this.db) return Promise.resolve(this.db);
+      return new Promise((res) => {
+        try {
+          const rq = indexedDB.open('cie-master', 1);
+          rq.onupgradeneeded = () => rq.result.createObjectStore('datasets');
+          rq.onsuccess = () => res((this.db = rq.result));
+          rq.onerror = () => res(null);
+        } catch (e) { res(null); }
+      });
+    },
+    async get(k) {
+      const db = await this.open();
+      if (!db) return undefined;
+      return new Promise((res) => { try { const r = db.transaction('datasets').objectStore('datasets').get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); } catch (e) { res(undefined); } });
+    },
+    async set(k, v) {
+      const db = await this.open();
+      if (!db) return false;
+      return new Promise((res) => { try { const t = db.transaction('datasets', 'readwrite'); t.objectStore('datasets').put(v, k); t.oncomplete = () => res(true); t.onerror = () => res(false); } catch (e) { res(false); } });
+    },
+    async del(k) {
+      const db = await this.open();
+      if (!db) return;
+      try { db.transaction('datasets', 'readwrite').objectStore('datasets').delete(k); } catch (e) { /* ignore */ }
+    },
+  });
+  CIE.loadWorkspace = async (id) => {
     const ws = store.get(wsKey(id), null);
-    return ws ? CIE.normalize(ws) : null;
+    if (!ws) return null;
+    if (ws.hasDatasets) ws.datasets = (await idb.get(id)) || {};
+    return CIE.normalize(ws);
   };
   CIE.saveWorkspace = function (ws) {
     ws.updatedAt = new Date().toISOString();
-    const ok = store.set(wsKey(ws.id), ws);
+    const { datasets, _dsDirty, ...rest } = ws;
+    rest.hasDatasets = !!(datasets && Object.keys(datasets).length);
+    if (rest.hasDatasets && _dsDirty) { idb.set(ws.id, datasets); delete ws._dsDirty; }
+    const ok = store.set(wsKey(ws.id), rest);
     const idx = CIE.listWorkspaces().filter((w) => w.id !== ws.id);
     idx.push({ id: ws.id, name: ws.name });
     store.set(KEY_INDEX, idx);
@@ -399,6 +460,7 @@ td input[type="number"] { width: 90px; }
   };
   CIE.deleteWorkspace = function (id) {
     store.del(wsKey(id));
+    idb.del(id);
     store.set(KEY_INDEX, CIE.listWorkspaces().filter((w) => w.id !== id));
   };
   CIE.prefs = store.get(KEY_PREFS, {});
@@ -509,6 +571,7 @@ td input[type="number"] { width: 90px; }
 
   /* ---------------- UI helpers ---------------- */
   CIE.toast = function (msg) {
+    document.querySelectorAll('.toast').forEach((n) => n.remove());
     const t = document.createElement('div');
     t.className = 'toast';
     t.textContent = msg;
@@ -712,6 +775,345 @@ td input[type="number"] { width: 90px; }
 })();
 
 </script>
+  <script>/* js/importers.js */
+/* Importers: turn an existing single-file CIE (.html) into a workspace, entirely in the browser.
+   Nothing is uploaded. Each adapter recognises a data layout, not a company, so new CIEs that reuse
+   a layout import too. The file's own scripts are never executed — data blocks are parsed as data. */
+(function () {
+  'use strict';
+  const CIE = window.CIE;
+  const adapters = (CIE.importers = []);
+  CIE.registerImporter = (a) => adapters.push(a);
+
+  /* ---------- parsing helpers ---------- */
+  const scriptsOf = (html) => [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)].map((m) => ({ attr: m[1], code: m[2] }));
+  const jsonBlock = (html, id) => {
+    const s = scriptsOf(html).find((x) => x.attr.includes(`id="${id}"`));
+    return s ? JSON.parse(s.code) : null;
+  };
+
+  // Strict parser for JavaScript literal data (objects, arrays, strings, numbers, true/false/null).
+  // Accepts unquoted keys, single quotes, .5 numbers and trailing commas. Anything else throws.
+  function parseLiteral(src, start) {
+    let i = start || 0;
+    const ws = () => { for (;;) { while (/\s/.test(src[i])) i++; if (src[i] === '/' && src[i + 1] === '/') { while (i < src.length && src[i] !== '\n') i++; } else if (src[i] === '/' && src[i + 1] === '*') { i = src.indexOf('*/', i) + 2; } else break; } };
+    const fail = (m) => { throw new Error('Unreadable data near character ' + i + ': ' + m); };
+    function str() {
+      const q = src[i++]; let out = '';
+      while (i < src.length && src[i] !== q) {
+        if (src[i] === '\\') { const n = src[++i]; const map = { n: '\n', t: '\t', r: '\r', b: '\b', f: '\f', v: '\v', 0: '\0' }; if (n === 'u') { out += String.fromCharCode(parseInt(src.substr(i + 1, 4), 16)); i += 5; continue; } out += map[n] != null ? map[n] : n; i++; continue; }
+        out += src[i++];
+      }
+      i++; return out;
+    }
+    function val() {
+      ws();
+      const c = src[i];
+      if (c === '{') {
+        i++; const o = {};
+        for (;;) {
+          ws(); if (src[i] === '}') { i++; return o; }
+          let k; if (src[i] === '"' || src[i] === "'") k = str(); else { const m = /^[A-Za-z_$][\w$]*|^\d+/.exec(src.slice(i, i + 200)); if (!m) fail('key'); k = m[0]; i += k.length; }
+          ws(); if (src[i++] !== ':') fail('colon'); o[k] = val(); ws();
+          if (src[i] === ',') i++; else if (src[i] !== '}') fail('object');
+        }
+      }
+      if (c === '[') {
+        i++; const a = [];
+        for (;;) { ws(); if (src[i] === ']') { i++; return a; } a.push(val()); ws(); if (src[i] === ',') i++; else if (src[i] !== ']') fail('array'); }
+      }
+      if (c === '"' || c === "'") return str();
+      const m = /^-?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?/.exec(src.slice(i, i + 40));
+      if (m) { i += m[0].length; return Number(m[0]); }
+      for (const [w, v] of [['true', true], ['false', false], ['null', null], ['undefined', null]]) if (src.startsWith(w, i)) { i += w.length; return v; }
+      fail('value');
+    }
+    const v = val();
+    return { value: v, end: i };
+  }
+  CIE.parseLiteral = (s) => parseLiteral(s, 0).value;
+  // Index just past the bracket that closes the one at `start` (string-aware), or -1.
+  function matchEnd(src, start) {
+    let d = 0, q = '';
+    for (let i = start; i < src.length; i++) {
+      const c = src[i];
+      if (q) { if (c === '\\') i++; else if (c === q) q = ''; continue; }
+      if (c === '"' || c === "'" || c === '`') q = c;
+      else if (c === '[' || c === '{') d++;
+      else if (c === ']' || c === '}') { d--; if (!d) return i + 1; }
+    }
+    return -1;
+  }
+  // Value of `const NAME = <literal>` inside any script, or null.
+  function constOf(html, name) {
+    for (const s of scriptsOf(html)) {
+      const m = new RegExp('(?:const|let|var)\\s+' + name + '\\s*=\\s*').exec(s.code);
+      if (!m) continue;
+      const start = m.index + m[0].length;
+      const end = matchEnd(s.code, start);
+      if (end > start) { try { return JSON.parse(s.code.slice(start, end)); } catch (e) { /* not strict JSON — fall through */ } }
+      try { return parseLiteral(s.code, start).value; } catch (e) { return null; }
+    }
+    return null;
+  }
+
+  const slug = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') || 'other';
+  const titleCase = (s) => String(s || '').toLowerCase().replace(/\b([a-z])([a-z']*)/g, (w, a, b) => (/^(of|and|the|at|in|for|on)$/.test(w) ? w : a.toUpperCase() + b)).replace(/^./, (c) => c.toUpperCase());
+  const prettify = (id) => String(id || '').replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+  const segmentsFrom = (vals, labels) => [...new Set(vals.filter(Boolean))].map((v) => ({ id: slug(v), name: (labels && labels[v]) || (/[A-Z ]/.test(v) ? v : prettify(v)) }));
+  // Score a value 0–5 by its quintile within the population.
+  const quintiler = (vals) => { const s = vals.filter((v) => v != null && !isNaN(v)).sort((a, b) => a - b); return (v) => { if (v == null || isNaN(v) || !s.length) return 0; let k = 0; while (k < s.length && s[k] <= v) k++; return Math.max(1, Math.min(5, Math.ceil((k / s.length) * 5))); }; };
+  const base = (name) => { const w = CIE.blankWorkspace(name); w.company = name; w.subtitle = 'Imported from an existing CIE file'; return w; };
+  const account = (o) => Object.assign({ id: CIE.uid('acc'), stage: 'identified', tags: [], scores: {}, checks: {}, people: [], signals: [], relationship: { owner: '', strength: 'none', note: '' }, value: { users: 0, hours: 3, rate: 48, share: 0.6, multiple: 3 }, notes: '' }, o);
+
+  /* =====================================================================
+     1. Facility infection table:  const FACILITIES = [...], optional const HAI = [...]
+     ===================================================================== */
+  const HAI_META = {
+    clabsi: { full: 'Central line-associated bloodstream infection', denomKey: 'clabsi_device_days', predKey: 'clabsi_predicted', denom: 'central-line days', per: 1000 },
+    cauti: { full: 'Catheter-associated urinary tract infection', denomKey: 'cauti_device_days', predKey: 'cauti_predicted', denom: 'catheter days', per: 1000 },
+    ssi_colon: { full: 'Surgical site infection — colon surgery', denomKey: 'ssi_colon_procedures', predKey: 'ssi_colon_predicted', denom: 'procedures', per: 100 },
+    ssi_hyst: { full: 'Surgical site infection — abdominal hysterectomy', denomKey: 'ssi_hyst_procedures', predKey: 'ssi_hyst_predicted', denom: 'procedures', per: 100 },
+    mrsa: { full: 'MRSA bacteremia', denomKey: 'mrsa_patient_days', predKey: 'mrsa_predicted', denom: 'patient days', per: 10000 },
+    cdi: { full: 'Clostridioides difficile infection', denomKey: 'cdi_patient_days', predKey: 'cdi_predicted', denom: 'patient days', per: 10000 },
+  };
+  CIE.registerImporter({
+    id: 'facility-hai',
+    label: 'Facility infection-quality engine',
+    detect: (html) => /const\s+FACILITIES\s*=\s*\[/.test(html),
+    convert(html, name) {
+      const F = constOf(html, 'FACILITIES');
+      if (!Array.isArray(F) || !F.length) throw new Error('The facility table could not be read.');
+      // Always the six reported CMS measures; the source's model list only supplies cost per case.
+      const H = constOf(html, 'HAI') || [];
+      const costOf = (k) => { const h = H.find((x) => x.key === k) || H.find((x) => x.key === k.split('_')[0]); return h && h.cost && h.cost.some(Boolean) ? h.cost : null; };
+      const NAMES = { clabsi: 'CLABSI', cauti: 'CAUTI', ssi_colon: 'SSI colon', ssi_hyst: 'SSI hyst', mrsa: 'MRSA', cdi: 'C. diff' };
+      const measures = Object.keys(HAI_META).filter((k) => F.some((f) => f[k + '_observed'] != null)).map((k) => ({ key: k, name: NAMES[k], full: HAI_META[k].full, denom: HAI_META[k].denom, per: HAI_META[k].per, cost: costOf(k), obsKey: k + '_observed', sirKey: k + '_sir' }));
+      const num = (v) => (v == null || v === '' || isNaN(v) ? null : Number(v));
+      const rows = F.map((f) => {
+        const m = {};
+        measures.forEach((ms) => {
+          const meta = HAI_META[ms.key] || {};
+          const o = num(f[ms.obsKey]), s = num(f[ms.sirKey]), p = num(f[meta.predKey]), d = num(f[meta.denomKey]);
+          if (o != null || s != null) m[ms.key] = [o, p != null ? p : s ? o / s : null, s, d];
+        });
+        return {
+          id: String(f['Facility ID'] || f.id || CIE.uid('f')), name: titleCase(f['Facility Name'] || f.name), city: titleCase(f['City/Town'] || f.city || ''), state: f.State || f.state || '',
+          type: f['Hospital Type'] || '', owner: f['Hospital Ownership'] || '', rating: num(f['Hospital overall rating']), leapfrog: f.leapfrog_grade || '',
+          hac: num(f.total_hac_score), hacPenalty: Number(f.hac_payment_reduction) === 1, worse: num(f.worse_benchmark_count),
+          beds: num(f.hcris_total_beds), cc: num(f.hcris_critical_care_beds), icu: num(f.hcris_icu_beds),
+          priority: f.priority_score != null ? Math.round(f.priority_score * 10) / 10 : null, rank: f.rank != null ? Math.round(f.rank) : null,
+          excessReported: num(f.excess_total), wedge: f.lead_wedge || '', rationale: f.wedge_rationale || '', whyNow: f.why_now || '', access: [f.access_tags, f.access_notes].filter(Boolean).join(' — '), m,
+        };
+      });
+      measures.forEach((ms) => { delete ms.obsKey; delete ms.sirKey; });
+      const first = F[0];
+      const ws = base(name);
+      ws.subtitle = 'Imported facility infection-quality engine';
+      ws.datasets = { quality: { title: 'Hospital-acquired infections', source: 'CMS Healthcare-Associated Infections with HCRIS beds, HAC Reduction Program and Leapfrog, as compiled in the source file', period: first['Start Date'] ? first['Start Date'] + ' – ' + first['End Date'] : '', measures, rows } };
+      // Top facilities by priority become accounts, linked to their HAI profile.
+      const top = rows.filter((r) => r.priority != null).sort((a, b) => b.priority - a.priority).slice(0, 150);
+      const qEx = quintiler(rows.map((r) => r.excessReported)), qBeds = quintiler(rows.map((r) => r.beds)), qCC = quintiler(rows.map((r) => r.cc));
+      ws.dimensions = [
+        { key: 'burden', label: 'Infection burden (excess cases)', weight: 30 },
+        { key: 'pressure', label: 'Safety pressure (HAC, Leapfrog, benchmarks)', weight: 25 },
+        { key: 'footprint', label: 'Critical-care footprint', weight: 20 },
+        { key: 'scale', label: 'Hospital scale', weight: 15 },
+        { key: 'relationship', label: 'Relationship', weight: 10 },
+      ];
+      const owners = (o) => (/non-profit|nonprofit/i.test(o) ? 'Non-profit' : /government/i.test(o) ? 'Government' : /proprietary/i.test(o) ? 'Proprietary' : /physician/i.test(o) ? 'Physician-owned' : 'Other');
+      ws.segments = ['Non-profit', 'Government', 'Proprietary', 'Physician-owned', 'Other'].map((n) => ({ id: slug(n), name: n }));
+      ws.offering = { unit: 'bed', price: 2250 };
+      ws.accounts = top.map((r) => {
+        const pressure = Math.min(5, (r.hacPenalty ? 2 : 0) + (r.worse || 0) + ({ D: 2, F: 2, C: 1 }[r.leapfrog] || 0));
+        return account({
+          name: r.name, segment: slug(owners(r.owner)), state: r.state, city: r.city, facilityId: r.id, stage: 'identity_resolved',
+          tags: [r.leapfrog ? 'Leapfrog ' + r.leapfrog : '', r.hacPenalty ? 'HAC penalty' : ''].filter(Boolean).concat((r.access || '').split('—')[0].split(/[,;]/).map((t) => t.trim()).filter(Boolean)),
+          scores: { burden: { v: qEx(r.excessReported), s: 'evidenced' }, pressure: { v: pressure, s: 'evidenced' }, footprint: { v: qCC(r.cc), s: 'evidenced' }, scale: { v: qBeds(r.beds), s: 'evidenced' }, relationship: { v: 0, s: 'unknown' } },
+          checks: { identity: true, workflow: !!r.wedge, buyer: false, trigger: !!r.whyNow },
+          bottomLine: r.whyNow ? 'Why now: ' + r.whyNow : '', why: r.rationale, firstUse: r.wedge, user: 'Infection prevention and nursing quality teams', buyer: 'CNO / CMO / VP Quality & Patient Safety',
+          value: { users: r.cc || r.beds || 0, hours: 3, rate: 65, share: 0.4, multiple: 2, price: 2250 },
+          signals: [], notes: 'Original priority score ' + r.priority + (r.rank ? ' (rank ' + r.rank + ')' : ''),
+        });
+      });
+      ws.lenses = [
+        { id: 'all', label: 'All accounts', filter: {} },
+        { id: 'hac', label: 'HAC-penalised', filter: { tags: ['HAC penalty'] } },
+        { id: 'grade', label: 'Leapfrog C or worse', filter: { tags: ['Leapfrog C', 'Leapfrog D', 'Leapfrog F'] } },
+        { id: 'warm', label: 'Relationships', filter: {}, access: true },
+      ];
+      ws.economics.streams = measures.filter((ms) => ms.cost).map((ms) => ({ label: ms.name + ' cases avoided', perUnit: 0, share: 0.4, counted: true, basis: 'set per bed from the facility profile; base cost per case ' + CIE.money(ms.cost[1]) }));
+      ws.thesis = 'Ranked by public infection burden and safety pressure. Open Facility quality (HAI) for the full measure-level data on every hospital.';
+      return ws;
+    },
+  });
+
+  /* =====================================================================
+     2. Researched-cohort engine:  <script id="cie-data" type="application/json">
+     ===================================================================== */
+  CIE.registerImporter({
+    id: 'cohort-json',
+    label: 'Researched-cohort engine',
+    detect: (html) => /id="cie-data"/.test(html),
+    convert(html, name) {
+      const D = jsonBlock(html, 'cie-data');
+      const SEG = constOf(html, 'SEG');
+      const ws = base(name);
+      ws.dimensions = Object.keys(D.weights).map((k) => ({ key: k, label: (D.dim_label && D.dim_label[k]) || prettify(k), weight: D.weights[k] }));
+      ws.segments = segmentsFrom(D.cohort.map((a) => a.primary_segment), SEG);
+      const stageMap = { qualified_opportunity: 'qualified' };
+      const relMap = (k) => (/direct/.test(k) ? 'direct' : /warm/.test(k) ? 'warm' : /investor|possible/.test(k) ? 'possible' : 'none');
+      const statusTag = { reference_to_verify: 'Reference to verify', partner_route: 'Partner route', net_new: '' };
+      ws.accounts = D.cohort.map((a) => {
+        const scores = {};
+        Object.entries(a.scores || {}).forEach(([k, v]) => (scores[k] = { v: Array.isArray(v) ? v[0] : v, s: Array.isArray(v) ? v[1] : 'estimated' }));
+        const cl = a.outreach_checklist || {};
+        return account({
+          id: a.id, name: a.name, segment: slug(a.primary_segment), state: a.state, stage: stageMap[a.stage] || a.stage || 'identified',
+          tags: [statusTag[a.customer_status], a.depth === 'deep' ? 'Deep research' : ''].concat(/investor/.test((a.relationship || {}).kind || '') ? ['Investor-linked'] : []).filter(Boolean),
+          scores, checks: { identity: !!cl.identity_and_parent, workflow: !!cl.workflow_evidence, buyer: !!cl.buyer_and_owner_hypothesis, trigger: !!cl.sourced_reason },
+          why: a.why, user: a.user_workflow_owner, buyer: a.economic_buyer, firstUse: (a.first_use || {}).workflow, pilotEndpoint: (a.first_use || {}).pilot_endpoint,
+          uncertainty: a.uncertainty, nextAction: a.next_action,
+          people: (a.contacts || []).map((c) => ({ name: c.name, role: c.title, source: c.source_url })),
+          signals: (a.signals || []).map((g) => ({ date: g.date, fact: g.fact })),
+          relationship: { owner: '', strength: relMap((a.relationship || {}).kind || ''), note: (a.relationship || {}).route || '' },
+          value: { users: (a.users || {}).base || 0, hours: 3, rate: 48, share: 0.6, multiple: 3 },
+        });
+      });
+      if (D.market && D.market.segments) {
+        const pr = D.market.prices || [2400, 3600, 4800];
+        ws.market.prices = { low: pr[0], base: pr[1], high: pr[2] };
+        ws.market.segments = D.market.segments.map((s) => ({ name: s.label || prettify(s.id), count: s.source_count || 0, retain: s.retained_share || [0, 0, 0], fit: s.workflow_fit_share || [0, 0, 0], upu: s.eligible_users_per_account || [0, 0, 0], expansion: false }));
+      }
+      ws.sources = (D.sources || []).map((s) => ({ title: s.title, publisher: s.source_id, date: s.accessed || s.period, kind: 'Public record', supports: s.note, url: s.url }));
+      ws.glossary = (D.glossary || []).map((g) => ({ term: g.abbr, full: g.full, definition: g.meaning, relevance: '' }));
+      ws.decisions = (D.review || []).map((r) => ({ topic: r.topic, question: r.q, call: r.decision, why: r.reason, confidence: r.confidence, effect: r.applied, status: 'Open', mine: '' }));
+      ws.diligence = (D.backlog || []).map((b) => ({ question: b.item, why: b.why, owner: '', priority: /high|1/i.test(b.priority) ? 'P1' : 'P2', status: 'Open', answer: b.next }));
+      ws.lenses = [{ id: 'all', label: 'All accounts', filter: {} }, { id: 'indep', label: 'Independent demand', filter: { excludeTags: ['Investor-linked', 'Reference to verify', 'Partner route'] } }, { id: 'warm', label: 'Warm introductions', filter: {}, access: true }]
+        .concat(ws.segments.slice(0, 5).map((s) => ({ id: 'seg_' + s.id, label: s.name, filter: { segments: [s.id] } })));
+      ws.asOf = (D.meta && D.meta.built) || ws.asOf;
+      return ws;
+    },
+  });
+
+  /* =====================================================================
+     3. Model engine:  <script id="model-data" type="application/json">
+     ===================================================================== */
+  CIE.registerImporter({
+    id: 'model-json',
+    label: 'Account-model engine',
+    detect: (html) => /id="model-data"/.test(html),
+    convert(html, name) {
+      const M = jsonBlock(html, 'model-data');
+      const ws = base(name);
+      ws.asOf = M.as_of || ws.asOf;
+      ws.thesis = typeof M.thesis === 'string' ? M.thesis : '';
+      ws.subtitle = M.purpose || ws.subtitle;
+      ws.dimensions = (M.dimensions || []).map((d, i) => ({ key: slug(d), label: d, weight: (M.weights || [])[i] || 10 }));
+      ws.segments = segmentsFrom((M.accounts || []).map((a) => a.segment));
+      ws.accounts = (M.accounts || []).map((a) => {
+        const scores = {};
+        ws.dimensions.forEach((d, i) => (scores[d.key] = { v: (a.scores || [])[i] || 0, s: (a.scores || [])[i] == null ? 'unknown' : 'estimated' }));
+        const price = Array.isArray(a.price) ? a.price[1] : 0;
+        return account({
+          id: a.id, name: a.name, segment: slug(a.segment), state: a.state, stage: /qualif/i.test(a.stage || '') ? 'qualified' : /research/i.test(a.stage || '') ? 'research_ready' : 'identified',
+          tags: [a.wave, a.status].filter(Boolean), scores, why: a.rationale, buyer: a.buyer, firstUse: a.wedge, pilotEndpoint: a.metric, uncertainty: a.gate, nextAction: a.next_action,
+          bottomLine: a.score_basis || '', relationship: { owner: '', strength: /unknown|no /i.test(a.access || '') ? 'none' : 'possible', note: a.access || '' },
+          value: { users: 0, hours: 3, rate: 48, share: 0.6, multiple: 3, price }, notes: [a.funding && 'Funding: ' + a.funding, a.cycle && 'Cycle: ' + a.cycle, a.incumbent && 'Incumbent: ' + a.incumbent].filter(Boolean).join('\n'),
+        });
+      });
+      ws.sources = (M.sources || []).map((s) => ({ title: s.title, publisher: s.id, date: s.date || s.accessed, kind: /customer/i.test(s.kind) ? 'Customer testimony' : /vendor|company/i.test(s.kind) ? 'Vendor claim' : 'Public record', supports: s.note, url: s.url }));
+      ws.glossary = (M.glossary || []).map((g) => ({ term: g.term, full: g.expansion, definition: g.meaning, relevance: g.commercial }));
+      ws.diligence = (M.claims || []).map((c) => ({ question: c.claim, why: c.limit, owner: '', priority: 'P2', status: /verified|confirmed/i.test(c.status) ? 'Answered' : 'Open', answer: c.status }));
+      ws.decisions = (M.policies || []).map((p) => ({ topic: 'Policy', question: p.title, call: p.action, why: p.meaning, confidence: 'Medium', effect: p.impact, status: 'Open', mine: '' }));
+      ws.lenses = [{ id: 'all', label: 'All accounts', filter: {} }].concat([...new Set(ws.accounts.map((a) => a.tags[0]).filter(Boolean))].slice(0, 5).map((w) => ({ id: slug(w), label: w, filter: { tags: [w] } })));
+      return ws;
+    },
+  });
+
+  /* =====================================================================
+     4. Network / owner engine:  const DATA = { sites: [...], groups: [...] }
+     ===================================================================== */
+  CIE.registerImporter({
+    id: 'network-owners',
+    label: 'Network owner engine',
+    detect: (html) => /const\s+DATA\s*=\s*\{\s*"sites"/.test(html),
+    convert(html, name) {
+      const D = constOf(html, 'DATA');
+      const ws = base(name);
+      ws.offering = { unit: 'site', price: 60000 };
+      ws.dimensions = [
+        { key: 'scale', label: 'Open sites', weight: 30 }, { key: 'growth', label: 'Growth: new and coming sites', weight: 15 },
+        { key: 'footprint', label: 'Multi-state footprint', weight: 10 }, { key: 'lanes', label: 'Both service lanes', weight: 15 },
+        { key: 'data', label: 'Data confidence', weight: 10 }, { key: 'proximity', label: 'Proximity to HQ', weight: 10 }, { key: 'relationship', label: 'Relationship', weight: 10 },
+      ];
+      ws.segments = segmentsFrom(D.groups.map((g) => g.type));
+      const sitesBy = {};
+      D.sites.forEach((s) => (sitesBy[s.gid] = sitesBy[s.gid] || []).push(s));
+      const qOpen = quintiler(D.groups.map((g) => g.n_open)), qGrow = quintiler(D.groups.map((g) => (g.n_ramp || 0) + (g.n_pipe || 0)));
+      ws.accounts = D.groups.map((g) => {
+        const s0 = (sitesBy[g.id] || []).find((s) => s.lat != null) || {};
+        return account({
+          id: g.id, name: g.name, segment: slug(g.type), state: (g.states || [])[0] || s0.st, lat: s0.lat, lon: s0.lon,
+          tags: [g.backer, g.clinic && g.pharmacy ? 'Both lanes' : '', g.recent_change ? 'Recent ownership change' : ''].filter(Boolean),
+          scores: {
+            scale: { v: qOpen(g.n_open), s: 'evidenced' }, growth: { v: (g.n_ramp || 0) + (g.n_pipe || 0) ? qGrow((g.n_ramp || 0) + (g.n_pipe || 0)) : 0, s: 'evidenced' },
+            footprint: { v: Math.min(5, (g.states || []).length), s: 'evidenced' }, lanes: { v: g.clinic && g.pharmacy ? 5 : g.clinic || g.pharmacy ? 2 : 0, s: 'evidenced' },
+            data: { v: Math.round((g.complete || 0) * 5), s: 'estimated' }, proximity: { v: g.dist_hq == null ? 0 : g.dist_hq < 250 ? 5 : g.dist_hq < 600 ? 3 : 1, s: g.dist_hq == null ? 'unknown' : 'evidenced' }, relationship: { v: 0, s: 'unknown' },
+          },
+          checks: { identity: true }, people: (g.people || []).map((p) => ({ name: p.name, role: p.role, source: '' })),
+          value: { users: g.n_open || 0, hours: 3, rate: 48, share: 0.6, multiple: 3 },
+          notes: (sitesBy[g.id] || []).map((s) => '• ' + s.site + (s.status ? ' (' + s.status + ')' : '')).join('\n'),
+        });
+      });
+      ws.lenses = [{ id: 'all', label: 'All owners', filter: {} }].concat(ws.segments.map((s) => ({ id: 'seg_' + s.id, label: s.name, filter: { segments: [s.id] } }))).concat([{ id: 'warm', label: 'Pilot + access', filter: {}, access: true }]);
+      return ws;
+    },
+  });
+
+  /* =====================================================================
+     5. Account universe:  const ACCOUNTS = [ { ..., components: {dimension: points} } ]
+     ===================================================================== */
+  CIE.registerImporter({
+    id: 'account-universe',
+    label: 'Account-universe engine',
+    detect: (html) => /const\s+ACCOUNTS\s*=\s*\[/.test(html),
+    convert(html, name) {
+      const A = constOf(html, 'ACCOUNTS');
+      const ws = base(name);
+      const comps = {};
+      A.forEach((a) => Object.entries(a.components || {}).forEach(([k, v]) => (comps[k] = Math.max(comps[k] || 0, Number(v) || 0))));
+      ws.dimensions = Object.entries(comps).map(([k, max]) => ({ key: slug(k), label: k, weight: Math.round(max) || 10 }));
+      ws.segments = segmentsFrom(A.map((a) => a.segment));
+      ws.accounts = A.map((a) => {
+        const scores = {};
+        Object.entries(comps).forEach(([k, max]) => { const v = (a.components || {})[k]; scores[slug(k)] = v == null ? { v: 0, s: 'unknown' } : { v: Math.round((v / (max || 1)) * 5), s: 'estimated' }; });
+        return account({
+          id: a.id, name: a.name, segment: slug(a.segment), stage: /research|verify/i.test(a.triggerStatus || '') ? 'identity_resolved' : 'research_ready',
+          tags: [a.priority, a.motion, a.existing ? 'Existing customer' : '', a.competitor ? 'Competitive takeout' : '', a.accountTier].filter(Boolean),
+          scores, why: a.why, firstUse: (a.wedges || []).join(', '), uncertainty: a.statusNote, nextAction: a.activationRule, bottomLine: a.trigger ? 'Trigger: ' + a.trigger + ' (' + (a.triggerStatus || '') + ')' : '',
+          checks: { identity: true }, notes: [a.scaleEvidence, a.initialPrice && 'Initial: ' + a.initialPrice, a.expansionPrice && 'Expansion: ' + a.expansionPrice, a.channel].filter(Boolean).join('\n'),
+        });
+      });
+      ws.lenses = [{ id: 'all', label: 'All accounts', filter: {} }].concat([...new Set(A.map((a) => a.motion).filter(Boolean))].map((m) => ({ id: slug(m), label: m, filter: { tags: [m] } }))).concat([{ id: 'p1', label: 'P1 only', filter: { tags: ['P1'] } }]);
+      return ws;
+    },
+  });
+
+  /* ---------- entry point ---------- */
+  CIE.importCIE = function (html, fileName) {
+    const name = String(fileName || 'Imported CIE').replace(/\.(html?|json)$/i, '').replace(/^[0-9a-f]{8}-/i, '').replace(/_/g, ' ').replace(/\s*(Commercial Intelligence Engine|CIE)\b.*$/i, '').trim() || 'Imported CIE';
+    const a = adapters.find((x) => x.detect(html));
+    if (!a) throw new Error('This file does not contain a data layout the importer recognises. Supported: ' + adapters.map((x) => x.label).join(', ') + '.');
+    const ws = a.convert(html, name);
+    ws.name = name + ' (imported)';
+    ws.importedFrom = { file: fileName, adapter: a.id, at: new Date().toISOString() };
+    ws.accounts.forEach((acc) => CIE.enforceStage(acc));
+    return { ws, adapter: a };
+  };
+})();
+
+</script>
   <!-- data -->
   <script>/* data/us-states.js */
 /* US state outlines, pre-projected (Albers USA, 975×610). Derived from us-atlas (ISC licence). */
@@ -804,6 +1206,37 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
       relationship: { owner: relRoll < 0.15 ? 'Investor / board' : relRoll < 0.3 ? 'Leadership team' : '', strength: relRoll < 0.1 ? 'warm' : relRoll < 0.2 ? 'possible' : relRoll < 0.24 ? 'direct' : 'none', note: '' },
       value: { users, hours: 3, rate: 48, share: 0.6, multiple: 3 },
       notes: '',
+    });
+  }
+
+
+  // Fictional hospital infection data so the Facility quality (HAI) tab can be explored before any import.
+  const measures = [
+    { key: 'clabsi', name: 'CLABSI', full: 'Central line-associated bloodstream infection', denom: 'central-line days', per: 1000, cost: [45000, 55000, 65000] },
+    { key: 'cauti', name: 'CAUTI', full: 'Catheter-associated urinary tract infection', denom: 'catheter days', per: 1000, cost: [900, 5000, 13800] },
+    { key: 'ssi_colon', name: 'SSI colon', full: 'Surgical site infection — colon surgery', denom: 'procedures', per: 100, cost: [20000, 28000, 36000] },
+    { key: 'ssi_hyst', name: 'SSI hyst', full: 'Surgical site infection — abdominal hysterectomy', denom: 'procedures', per: 100, cost: [15000, 20000, 26000] },
+    { key: 'mrsa', name: 'MRSA', full: 'MRSA bacteremia', denom: 'patient days', per: 10000, cost: [30000, 42000, 55000] },
+    { key: 'cdi', name: 'C. diff', full: 'Clostridioides difficile infection', denom: 'patient days', per: 10000, cost: [9000, 17000, 24000] },
+  ];
+  const hosp = ['General Hospital', 'Regional Medical Center', 'University Hospital', 'Community Hospital', 'Memorial Hospital'];
+  const facilities = [];
+  for (let i = 0; i < 60; i++) {
+    const c = pick(cities), beds = int(90, 900), m = {};
+    measures.forEach((ms) => {
+      if (rnd() < 0.1) return;
+      const pred = +(beds * ({ clabsi: 0.025, cauti: 0.03, ssi_colon: 0.012, ssi_hyst: 0.004, mrsa: 0.015, cdi: 0.06 }[ms.key]) * (0.6 + rnd() * 0.8)).toFixed(2);
+      const sir = +(0.3 + rnd() * rnd() * 2.2).toFixed(3);
+      const obs = Math.round(pred * sir);
+      const denom = Math.round(beds * ({ clabsi: 45, cauti: 40, ssi_colon: 0.6, ssi_hyst: 0.4, mrsa: 300, cdi: 280 }[ms.key]));
+      m[ms.key] = [obs, pred, pred ? +(obs / pred).toFixed(3) : null, denom];
+    });
+    facilities.push({
+      id: 'F' + (1000 + i), name: pick(first) + ' ' + pick(hosp), city: c[1], state: c[0], type: 'Acute Care Hospitals',
+      owner: pick(['Voluntary non-profit - Private', 'Government - Local', 'Proprietary']), rating: int(1, 5), leapfrog: pick(['A', 'B', 'C', 'C', 'D', '']),
+      hac: +(rnd() * 1.2 - 0.4).toFixed(3), hacPenalty: rnd() < 0.25, beds, cc: Math.round(beds * (0.1 + rnd() * 0.2)), icu: Math.round(beds * 0.06),
+      priority: +(40 + rnd() * 50).toFixed(1), wedge: pick(['Central-line maintenance bundle', 'Catheter removal prompts', 'Peri-operative SSI surveillance']),
+      whyNow: pick(['HAC payment reduction this fiscal year', 'Two measures above national benchmark', 'New CNO prioritising infection prevention', '']), m,
     });
   }
 
@@ -940,6 +1373,7 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
       { topic: 'Pricing', question: 'Plan at the low or high price?', call: 'Plan at $2,400 per user; the higher price must be earned.', why: 'Time savings alone support ~$1,500 at a 3× return.', confidence: 'Medium-low', effect: 'Planning price set to $2,400.', status: 'Open', mine: '' },
     ],
     custom: [],
+    datasets: { quality: { title: 'Hospital-acquired infections (fictional sample)', source: 'Generated sample data — not real hospitals', period: '2025 sample year', measures, rows: facilities } },
   };
 })();
 
@@ -1022,6 +1456,7 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
       return `
       <h2>${esc(a.name)}</h2>
       <div class="row" style="margin-top:6px"><span class="tag">${esc(CIE.stageLabel(a.stage))}</span><span class="tag">${esc(CIE.segmentName(ws, a.segment))}</span><span class="tag">${esc(a.state || '—')}</span>${a.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
+      ${a.facilityId && CIE.qualityData && CIE.qualityData(ws) ? `<div class="row" style="margin-top:10px"><button class="btn primary sm" data-hai="${esc(a.facilityId)}">Show HAI profile →</button></div>` : ''}
       <section><h3>Bottom line</h3><div class="bottomline">${esc(a.bottomLine || auto)}</div>${a.bottomLine ? `<p class="small muted" style="margin-top:6px">${esc(auto)}</p>` : ''}</section>
 
       <section><h3>Why it ranks here</h3>
@@ -1075,6 +1510,7 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
         <label class="field" style="margin-top:8px">Bottom line override<input data-f="bottomLine" value="${esc(a.bottomLine || '')}" placeholder="Leave blank to use the computed line"></label></section>`;
     };
     const bind = (d) => {
+      d.addEventListener('click', (e) => { const h = e.target.getAttribute && e.target.getAttribute('data-hai'); if (h) CIE.openFacility(ctx, h); });
       d.addEventListener('change', (e) => {
         const t = e.target;
         if (t.dataset.dim) {
@@ -1284,6 +1720,188 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
       root.querySelector('#addDim').onclick = () => { ws.dimensions.push({ key: CIE.uid('dim'), label: 'New dimension', weight: 10 }); ctx.save(); ctx.rerender(); };
       root.querySelector('#snap').onclick = () => { baseline = null; ctx.rerender(); };
       root.querySelectorAll('tr[data-id]').forEach((tr) => (tr.onclick = () => CIE.openAccount(ctx, tr.dataset.id)));
+    },
+  });
+})();
+
+</script>
+  <script>/* js/modules/quality.js */
+/* Facility quality: measure-level infection (HAI) data per facility — observed, predicted, SIR,
+   denominator, rate — with filters, pooled SIRs, a facility profile and a print-ready presentation view.
+   Data lives in ws.datasets.quality = { title, source, period, measures[], rows[] }. */
+(function () {
+  'use strict';
+  const CIE = window.CIE, esc = CIE.esc;
+  const view = { q: '', state: '', type: '', grade: '', worse: false, hac: false, minBeds: 0, sort: 'priority', dir: -1, shown: 100, focus: '' };
+
+  const sirClass = (s) => (s == null || isNaN(s) ? 'na' : s < 0.5 ? 'b3' : s < 0.8 ? 'b2' : s < 0.95 ? 'b1' : s <= 1.05 ? 'mid' : s <= 1.25 ? 'r1' : s <= 1.6 ? 'r2' : 'r3');
+  const sirCell = (m) => {
+    if (!m || m[2] == null) return '<td class="sir na" data-tip="Not reported">—</td>';
+    return `<td class="sir ${sirClass(m[2])}" data-tip="Observed ${CIE.num(m[0])} · predicted ${CIE.num(m[1], 1)} · SIR ${m[2].toFixed(2)}">${m[2].toFixed(2)}</td>`;
+  };
+  // Excess = cases above predicted, summed over measures (measures better than predicted add nothing).
+  const excessOf = (r) => Object.values(r.m || {}).reduce((t, m) => t + (m && m[0] != null && m[1] != null ? Math.max(0, m[0] - m[1]) : 0), 0);
+  const observedOf = (r) => Object.values(r.m || {}).reduce((t, m) => t + (m && m[0] != null ? m[0] : 0), 0);
+  const worseCount = (r) => Object.values(r.m || {}).filter((m) => m && m[2] != null && m[2] > 1).length;
+  CIE.qualityData = (ws) => (ws.datasets && ws.datasets.quality) || null;
+
+  function pooled(rows, measures) {
+    return measures.map((ms) => {
+      let o = 0, p = 0, worse = 0, rep = 0;
+      rows.forEach((r) => { const m = r.m && r.m[ms.key]; if (m && m[0] != null && m[1] != null) { o += m[0]; p += m[1]; rep++; if (m[2] != null && m[2] > 1) worse++; } });
+      return { ms, o, p, sir: p ? o / p : null, worse, rep };
+    });
+  }
+
+  /* ---------- facility profile (drawer + presentation) ---------- */
+  function profileHtml(ws, r, Q, present) {
+    const P = pooled([r], Q.measures);
+    const cost = (ms, k) => (ms.cost ? ms.cost[k] : 0);
+    const exposure = Q.measures.reduce((t, ms) => { const m = r.m[ms.key]; return t + (m && m[0] != null && m[1] != null ? Math.max(0, m[0] - m[1]) * cost(ms, 1) : 0); }, 0);
+    const maxSir = Math.max(2, ...P.map((x) => x.sir || 0));
+    const facts = [
+      ['Location', [r.city, r.state].filter(Boolean).join(', ')], ['Type', r.type], ['Ownership', r.owner],
+      ['Overall star rating', r.rating ? r.rating + ' / 5' : '—'], ['Leapfrog grade', r.leapfrog || '—'],
+      ['HAC score', r.hac != null ? r.hac.toFixed(3) : '—'], ['HAC payment reduction', r.hacPenalty ? 'Yes — penalised' : 'No'],
+      ['Total beds', CIE.num(r.beds)], ['Critical-care beds', CIE.num(r.cc)], ['ICU beds', CIE.num(r.icu)],
+    ];
+    return `
+      <div class="${present ? 'present-head' : ''}">
+        <h2>${esc(r.name)}</h2>
+        <div class="row" style="margin-top:6px">${r.rank ? `<span class="tag">Priority rank #${r.rank}</span>` : ''}${r.priority != null ? `<span class="tag">Priority score ${r.priority}</span>` : ''}<span class="tag">${esc(r.state || '')}</span>${r.leapfrog ? `<span class="tag">Leapfrog ${esc(r.leapfrog)}</span>` : ''}${r.hacPenalty ? '<span class="tag">HAC penalty</span>' : ''}</div>
+        <p class="small muted" style="margin-top:6px">${esc(Q.source || '')}${Q.period ? ' · reporting period ' + esc(Q.period) : ''}</p>
+      </div>
+      <div class="grid g4" style="margin-top:12px">
+        <div class="card kpi"><div class="label">Observed infections</div><div class="value">${CIE.num(observedOf(r))}</div><div class="foot">${Q.measures.length} measures</div></div>
+        <div class="card kpi"><div class="label">Excess cases above predicted</div><div class="value">${CIE.num(excessOf(r), 1)}</div><div class="foot">Σ max(0, observed − predicted)</div></div>
+        <div class="card kpi"><div class="label">Measures worse than national</div><div class="value">${worseCount(r)}</div><div class="foot">SIR above 1.0</div></div>
+        <div class="card kpi"><div class="label">Excess-case cost exposure</div><div class="value">${CIE.money(exposure)}</div><div class="foot">base cost per case · indicative</div></div>
+      </div>
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card"><div class="card-head"><h3>Standardized infection ratio by measure</h3><span class="sub">tick = national baseline (1.0)</span></div>
+          ${CIE.charts.barList(P.map((x) => ({ label: x.ms.name, value: x.sir == null ? 0 : +x.sir.toFixed(2), color: x.sir == null ? 'var(--axis)' : x.sir > 1 ? 'var(--div-r3)' : 'var(--div-b3)', marker: 1 / maxSir, tip: `${x.ms.full || x.ms.name}: SIR ${x.sir == null ? 'n/a' : x.sir.toFixed(2)}` })), { max: maxSir, labelWidth: 120, width: 520, format: (v) => (v ? v.toFixed(2) : 'n/a'), title: 'SIR by measure' })}
+          <p class="small muted">Below 1.0 = fewer infections than predicted for a hospital of this size and case mix; above 1.0 = more.</p></div>
+        <div class="card"><div class="card-head"><h3>Observed vs predicted</h3></div>
+          ${CIE.charts.columns(P.map((x) => ({ label: x.ms.name, values: [x.o, +x.p.toFixed(1)] })), [{ label: 'Observed', color: 'var(--s2)' }, { label: 'Predicted', color: 'var(--s1)' }], { format: (v) => CIE.num(v), title: 'Observed vs predicted' })}</div>
+      </div>
+      <div class="card" style="margin-top:14px"><div class="card-head"><h3>Measure detail</h3></div>
+        <div class="table-wrap"><table><thead><tr><th>Measure</th><th class="r">Observed</th><th class="r">Predicted</th><th class="r">SIR</th><th class="r">Excess</th><th class="r">Exposure</th><th>Denominator</th><th class="r">Rate</th></tr></thead><tbody>
+        ${Q.measures.map((ms) => { const m = r.m[ms.key]; if (!m) return `<tr><td><b>${esc(ms.name)}</b></td><td colspan="7" class="muted">Not reported</td></tr>`;
+          const ex = m[0] != null && m[1] != null ? m[0] - m[1] : null; const rate = m[3] ? (m[0] / m[3]) * (ms.per || 1000) : null;
+          return `<tr><td><b>${esc(ms.name)}</b><div class="small muted">${esc(ms.full || '')}</div></td><td class="r num">${CIE.num(m[0])}</td><td class="r num">${CIE.num(m[1], 1)}</td>${sirCell(m)}<td class="r num">${ex == null ? '—' : (ex >= 0 ? '+' : '') + ex.toFixed(1)}</td><td class="r num">${ex > 0 ? CIE.money(ex * cost(ms, 1)) : '—'}</td><td class="num">${m[3] ? CIE.num(m[3]) + ' ' + esc(ms.denom || '') : '—'}</td><td class="r num">${rate == null ? '—' : rate.toFixed(2) + ' / ' + CIE.num(ms.per || 1000)}</td></tr>`; }).join('')}
+        </tbody></table></div></div>
+      <div class="grid g2" style="margin-top:14px">
+        <div class="card"><div class="card-head"><h3>Facility facts</h3></div><dl class="kv">${facts.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v || '—')}</dd>`).join('')}</dl></div>
+        <div class="card"><div class="card-head"><h3>Commercial read</h3></div><dl class="kv">
+          ${r.wedge ? `<dt>Lead workflow</dt><dd>${esc(r.wedge)}</dd>` : ''}${r.rationale ? `<dt>Rationale</dt><dd>${esc(r.rationale)}</dd>` : ''}${r.whyNow ? `<dt>Why now</dt><dd>${esc(r.whyNow)}</dd>` : ''}${r.access ? `<dt>Access</dt><dd>${esc(r.access)}</dd>` : ''}
+          </dl>${!r.wedge && !r.whyNow ? '<p class="muted small">No commercial notes for this facility.</p>' : ''}</div>
+      </div>`;
+  }
+
+  CIE.openFacility = function (ctx, id) {
+    const ws = ctx.ws, Q = CIE.qualityData(ws);
+    const r = Q && Q.rows.find((x) => x.id === id);
+    if (!r) return CIE.toast('No facility data for this account');
+    ctx.openDrawer(`<div class="row" style="justify-content:flex-end;margin-bottom:6px"><button class="btn primary sm" id="presentBtn">Present full screen ⤢</button></div>` + profileHtml(ws, r, Q, false), (d) => {
+      d.classList.add('wide');
+      d.querySelector('#presentBtn').onclick = () => CIE.presentFacility(ctx, id);
+    });
+  };
+
+  CIE.presentFacility = function (ctx, id) {
+    const ws = ctx.ws, Q = CIE.qualityData(ws);
+    const r = Q.rows.find((x) => x.id === id);
+    ctx.closeDrawer();
+    const ov = document.createElement('div');
+    ov.className = 'present';
+    const list = view.list || [r.id];
+    const pos = list.indexOf(r.id);
+    ov.innerHTML = `<div class="present-bar"><span class="muted small">${esc(Q.title || 'Facility quality')} · ${pos >= 0 ? pos + 1 + ' of ' + list.length : ''} · ← → to move, Esc to close</span><span class="row"><button class="btn sm" data-p="-1">← Previous</button><button class="btn sm" data-p="1">Next →</button><button class="btn sm" onclick="window.print()">Print / PDF</button><button class="btn sm" data-x>Close ✕</button></span></div><div class="present-body">${profileHtml(ws, r, Q, true)}</div>`;
+    document.body.appendChild(ov);
+    const go = (d) => { const i = list.indexOf(r.id) + d; if (i >= 0 && i < list.length) { ov.remove(); document.removeEventListener('keydown', key); CIE.presentFacility(ctx, list[i]); } };
+    const key = (e) => { if (e.key === 'Escape') { ov.remove(); document.removeEventListener('keydown', key); } if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
+    document.addEventListener('keydown', key);
+    ov.addEventListener('click', (e) => { if (e.target.hasAttribute('data-x')) { ov.remove(); document.removeEventListener('keydown', key); } const p = e.target.getAttribute('data-p'); if (p) go(Number(p)); });
+  };
+
+  CIE.registerModule({
+    id: 'quality',
+    group: 'intel',
+    title: 'Facility quality (HAI)',
+    order: 14,
+    describe: 'Infection data per facility: observed, predicted, SIR, rates, with a presentation view.',
+    render(root, ctx) {
+      const ws = ctx.ws, Q = CIE.qualityData(ws);
+      if (!Q || !Q.rows || !Q.rows.length) {
+        root.innerHTML = `<div class="page-head"><div><h2>Facility quality (HAI)</h2><p>No facility dataset in this engagement yet.</p></div></div>
+          <div class="card"><p>Load one with <b>Data &amp; modules → Import an existing CIE file</b> (any CIE that carries a facility infection table), or switch to the sample engagement to see how it works.</p></div>`;
+        return;
+      }
+      const all = Q.rows;
+      const states = [...new Set(all.map((r) => r.state).filter(Boolean))].sort();
+      const types = [...new Set(all.map((r) => r.type).filter(Boolean))].sort();
+      const grades = [...new Set(all.map((r) => r.leapfrog).filter(Boolean))].sort();
+      let rows = all.filter((r) =>
+        (!view.q || (r.name + ' ' + (r.city || '')).toLowerCase().includes(view.q.toLowerCase())) &&
+        (!view.state || r.state === view.state) && (!view.type || r.type === view.type) && (!view.grade || r.leapfrog === view.grade) &&
+        (!view.worse || worseCount(r) > 0) && (!view.hac || r.hacPenalty) && (!view.minBeds || (r.beds || 0) >= view.minBeds));
+      const key = view.sort;
+      const val = (r) => key === 'name' ? r.name : key === 'beds' ? r.beds || 0 : key === 'observed' ? observedOf(r) : key === 'excess' ? excessOf(r) : key === 'worse' ? worseCount(r) : key === 'priority' ? (r.priority != null ? r.priority : -1) : r.m && r.m[key] && r.m[key][2] != null ? r.m[key][2] : -1;
+      rows.sort((a, b) => { const x = val(a), y = val(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * view.dir; });
+      view.list = rows.map((r) => r.id);
+      const P = pooled(rows, Q.measures);
+      const totO = P.reduce((t, x) => t + x.o, 0), totP = P.reduce((t, x) => t + x.p, 0), totEx = rows.reduce((t, r) => t + excessOf(r), 0);
+      const maxSir = Math.max(1.5, ...P.map((x) => x.sir || 0));
+      const th = (k, l, cls) => `<th class="sortable ${cls || ''}" data-sort="${k}">${l}${view.sort === k ? (view.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`;
+
+      root.innerHTML = `
+        <div class="page-head"><div><h2>${esc(Q.title || 'Facility quality (HAI)')}</h2><p>${esc(Q.source || '')}${Q.period ? ' · ' + esc(Q.period) : ''}. Click any facility for its full profile, then <b>Present</b> for a clean full-screen view you can page through with the arrow keys.</p></div>
+          <div class="row"><button class="btn" id="csv">Export CSV (${rows.length})</button>${rows[0] ? '<button class="btn primary" id="present">Present filtered list ⤢</button>' : ''}</div></div>
+        <div class="row" style="margin-bottom:12px">
+          <input id="fq" placeholder="Search facility or city…" value="${esc(view.q)}" style="min-width:220px">
+          <select id="fs"><option value="">All states</option>${states.map((s) => `<option ${s === view.state ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>
+          ${types.length > 1 ? `<select id="ft"><option value="">All types</option>${types.map((s) => `<option ${s === view.type ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>` : ''}
+          ${grades.length ? `<select id="fg"><option value="">Any Leapfrog grade</option>${grades.map((s) => `<option ${s === view.grade ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select>` : ''}
+          <label class="field" style="flex-direction:row;align-items:center;gap:6px">Min beds<input type="number" id="fb" value="${view.minBeds || ''}" style="width:80px"></label>
+          <label class="check"><input type="checkbox" id="fw" ${view.worse ? 'checked' : ''}> Worse than national on ≥1</label>
+          <label class="check"><input type="checkbox" id="fh" ${view.hac ? 'checked' : ''}> HAC penalty</label>
+          <button class="btn sm" id="freset">Reset</button>
+        </div>
+        <div class="grid g4">
+          <div class="card kpi"><div class="label">Facilities</div><div class="value">${CIE.num(rows.length)}</div><div class="foot">of ${CIE.num(all.length)} in the dataset</div></div>
+          <div class="card kpi"><div class="label">Observed infections</div><div class="value">${CIE.num(totO)}</div><div class="foot">predicted ${CIE.num(totP)}</div></div>
+          <div class="card kpi"><div class="label">Excess cases above predicted</div><div class="value">${CIE.num(totEx)}</div><div class="foot">pooled SIR ${totP ? (totO / totP).toFixed(2) : '—'} across all measures</div></div>
+          <div class="card kpi"><div class="label">Worse than national on ≥1 measure</div><div class="value">${CIE.num(rows.filter((r) => worseCount(r) > 0).length)}</div><div class="foot">${CIE.num(rows.filter((r) => r.hacPenalty).length)} with a HAC payment penalty</div></div>
+        </div>
+        <div class="grid g2" style="margin-top:16px">
+          <div class="card"><div class="card-head"><h3>Pooled SIR by measure</h3><span class="sub">Σ observed ÷ Σ predicted · tick = 1.0</span></div>
+            ${CIE.charts.barList(P.map((x) => ({ label: x.ms.name, value: x.sir == null ? 0 : +x.sir.toFixed(2), color: x.sir > 1 ? 'var(--div-r3)' : 'var(--div-b3)', marker: 1 / maxSir, tip: `${x.ms.full || x.ms.name}: pooled SIR ${x.sir == null ? 'n/a' : x.sir.toFixed(2)} across ${x.rep} reporting facilities` })), { max: maxSir, labelWidth: 120, width: 520, format: (v) => v.toFixed(2), title: 'Pooled SIR' })}</div>
+          <div class="card"><div class="card-head"><h3>Facilities worse than national, by measure</h3><span class="sub">count with SIR above 1.0</span></div>
+            ${CIE.charts.barList(P.map((x) => ({ label: x.ms.name, value: x.worse, color: 'var(--s2)', tip: `${x.ms.name}: ${x.worse} of ${x.rep} reporting facilities above 1.0` })), { labelWidth: 120, width: 520, title: 'Worse than national' })}</div>
+        </div>
+        <div class="legend" style="margin:16px 0 8px"><span>SIR:</span>${['b3', 'b2', 'b1', 'mid', 'r1', 'r2', 'r3'].map((c, i) => `<span><i class="sir ${c}" style="width:22px"></i>${['<0.5', '0.5–0.8', '0.8–0.95', '≈1.0', '1.05–1.25', '1.25–1.6', '>1.6'][i]}</span>`).join('')}</div>
+        <div class="table-wrap"><table class="hai"><thead><tr>${th('priority', 'Priority', 'r')}${th('name', 'Facility')}<th>State</th>${th('beds', 'Beds', 'r')}${th('observed', 'Observed', 'r')}${th('excess', 'Excess', 'r')}${Q.measures.map((ms) => th(ms.key, esc(ms.name), 'r')).join('')}<th>Leapfrog</th><th>HAC</th></tr></thead>
+          <tbody>${rows.slice(0, view.shown).map((r) => `<tr class="clickable" data-f="${esc(r.id)}"><td class="r num">${r.priority != null ? r.priority : ''}</td><td><b>${esc(r.name)}</b><div class="small muted">${esc(r.city || '')}</div></td><td>${esc(r.state || '')}</td><td class="r num">${CIE.num(r.beds)}</td><td class="r num">${CIE.num(observedOf(r))}</td><td class="r num">${excessOf(r).toFixed(1)}</td>${Q.measures.map((ms) => sirCell(r.m[ms.key])).join('')}<td>${esc(r.leapfrog || '')}</td><td>${r.hacPenalty ? '<span class="status serious">penalty</span>' : ''}</td></tr>`).join('') || `<tr><td colspan="${8 + Q.measures.length}" class="muted">No facilities match.</td></tr>`}</tbody></table></div>
+        ${rows.length > view.shown ? `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn" id="more">Show ${Math.min(200, rows.length - view.shown)} more (${CIE.num(rows.length - view.shown)} hidden)</button></div>` : ''}`;
+
+      const re = () => { view.shown = 100; ctx.rerender(); };
+      const q = root.querySelector('#fq');
+      q.oninput = () => { view.q = q.value; clearTimeout(q._t); q._t = setTimeout(() => { re(); const n = document.getElementById('fq'); n.focus(); n.setSelectionRange(n.value.length, n.value.length); }, 300); };
+      [['#fs', 'state'], ['#ft', 'type'], ['#fg', 'grade']].forEach(([s, k]) => { const el = root.querySelector(s); if (el) el.onchange = () => { view[k] = el.value; re(); }; });
+      root.querySelector('#fb').onchange = (e) => { view.minBeds = Number(e.target.value) || 0; re(); };
+      root.querySelector('#fw').onchange = (e) => { view.worse = e.target.checked; re(); };
+      root.querySelector('#fh').onchange = (e) => { view.hac = e.target.checked; re(); };
+      root.querySelector('#freset').onclick = () => { Object.assign(view, { q: '', state: '', type: '', grade: '', worse: false, hac: false, minBeds: 0, sort: 'priority', dir: -1 }); re(); };
+      root.querySelectorAll('[data-sort]').forEach((t) => (t.onclick = () => { if (view.sort === t.dataset.sort) view.dir *= -1; else { view.sort = t.dataset.sort; view.dir = t.dataset.sort === 'name' ? 1 : -1; } ctx.rerender(); }));
+      root.querySelectorAll('tr[data-f]').forEach((tr) => (tr.onclick = () => CIE.openFacility(ctx, tr.dataset.f)));
+      const more = root.querySelector('#more'); if (more) more.onclick = () => { view.shown += 200; ctx.rerender(); };
+      const pr = root.querySelector('#present'); if (pr) pr.onclick = () => CIE.presentFacility(ctx, rows[0].id);
+      root.querySelector('#csv').onclick = () => {
+        const cols = [{ label: 'Facility ID', get: (r) => r.id }, { label: 'Facility', get: (r) => r.name }, { label: 'City', get: (r) => r.city }, { label: 'State', get: (r) => r.state }, { label: 'Beds', get: (r) => r.beds }, { label: 'Priority', get: (r) => r.priority }, { label: 'Observed total', get: observedOf }, { label: 'Excess total', get: (r) => excessOf(r).toFixed(2) }]
+          .concat(Q.measures.flatMap((ms) => [{ label: ms.name + ' observed', get: (r) => (r.m[ms.key] || [])[0] }, { label: ms.name + ' predicted', get: (r) => (r.m[ms.key] || [])[1] }, { label: ms.name + ' SIR', get: (r) => (r.m[ms.key] || [])[2] }, { label: ms.name + ' denominator', get: (r) => (r.m[ms.key] || [])[3] }]))
+          .concat([{ label: 'Leapfrog', get: (r) => r.leapfrog }, { label: 'HAC penalty', get: (r) => (r.hacPenalty ? 'Yes' : 'No') }]);
+        CIE.download(CIE.slug(ws.name) + '-facility-quality.csv', CIE.toCSV(rows, cols), 'text/csv');
+      };
     },
   });
 })();
@@ -1804,7 +2422,11 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
             <div class="table-wrap"><table><tbody>${list.map((w) => `<tr><td>${w.id === ws.id ? '<b>' + esc(w.name) + '</b> <span class="tag">open</span>' : esc(w.name)}</td><td class="r">${w.id !== ws.id ? `<button class="btn sm" data-open="${esc(w.id)}">Open</button> <button class="btn sm danger" data-delws="${esc(w.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody></table></div>
             <div class="row" style="margin-top:10px"><button class="btn primary" id="newBlank">+ New blank engagement</button><button class="btn" id="newSample">+ New from sample</button><button class="btn" id="dup">Duplicate this one</button></div>
             <h3 style="margin:18px 0 8px">Save & export</h3>
-            <div class="row"><button class="btn primary" id="exp">Export workspace (.json)</button><label class="btn">Import workspace<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="btn" id="expAcc">Accounts CSV</button></div>
+            <div class="row"><button class="btn primary" id="exp">Export workspace (.json)</button><label class="btn">Import workspace (.json)<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="btn" id="expAcc">Accounts CSV</button></div>
+            <h3 style="margin:18px 0 8px">Import an existing CIE file</h3>
+            <p class="small ink2">Pick one of your original single-file CIEs (.html). Its accounts, scores, sources, glossary, decisions and any facility infection (HAI) table become a new engagement. The file is read in this browser only — nothing is uploaded, and its scripts are not run.</p>
+            <label class="btn primary">Choose a CIE .html file…<input type="file" id="impHtml" accept=".html,.htm,text/html" hidden></label>
+            <p class="small muted" style="margin-top:8px">Recognised layouts: ${CIE.importers.map((a) => esc(a.label)).join(' · ')}.</p>
             <p class="small muted" style="margin-top:8px">Import adds the file as a new engagement; it never overwrites one you have. Browser storage is per browser and per file location — clearing site data erases it, so export after each working session.</p></div>
         </div>
 
@@ -1858,6 +2480,27 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
             w.name = (w.name || 'Imported') + (list.find((x) => x.name === w.name) ? ' (imported)' : '');
             create(w);
           } catch (err) { CIE.modal('Could not import', `<p>${esc(err.message)}</p>`); }
+        };
+        rd.readAsText(f);
+      };
+      root.querySelector('#impHtml').onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        CIE.toast('Reading ' + f.name + '…');
+        const rd = new FileReader();
+        rd.onload = () => {
+          setTimeout(() => {
+            try {
+              const { ws: w, adapter } = CIE.importCIE(rd.result, f.name);
+              const Q = w.datasets && w.datasets.quality;
+              create(w);
+              CIE.modal('Imported', `<p><b>${esc(w.name)}</b> was created with the ${esc(adapter.label.toLowerCase())} layout.</p><ul class="ink2">
+                <li>${w.accounts.length} accounts · ${w.segments.length} segments · ${w.dimensions.length} scoring dimensions</li>
+                ${Q ? `<li>${Q.rows.length.toLocaleString()} facilities with ${Q.measures.length} infection measures — open <b>Facility quality (HAI)</b></li>` : ''}
+                <li>${w.sources.length} sources · ${w.glossary.length} glossary terms · ${w.decisions.length} decisions · ${(w.diligence || []).length} diligence items</li></ul>
+                <p class="small muted">Review the scoring dimensions in the Scoring workbench — imported scores keep their original evidence status where the file recorded one.</p>`, Q ? [{ label: 'Open HAI data', primary: true, run() { ctx.go('quality'); } }] : []);
+            } catch (err) { CIE.modal('Could not import', `<p>${esc(err.message)}</p>`); }
+          }, 30);
         };
         rd.readAsText(f);
       };
@@ -1926,16 +2569,17 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
   let ws = null;
   let current = null;
 
-  function boot() {
+  async function boot() {
     // First run: seed the generic sample engagement.
     let list = CIE.listWorkspaces();
     if (!list.length && window.CIE_SAMPLE) {
       const s = CIE.normalize(CIE.clone(window.CIE_SAMPLE));
+      s._dsDirty = true;
       CIE.saveWorkspace(s);
       list = CIE.listWorkspaces();
     }
     const id = CIE.prefs.workspace && list.find((w) => w.id === CIE.prefs.workspace) ? CIE.prefs.workspace : list[0] && list[0].id;
-    ws = (id && CIE.loadWorkspace(id)) || CIE.normalize(CIE.clone(window.CIE_SAMPLE || CIE.blankWorkspace('Sample')));
+    ws = (id && (await CIE.loadWorkspace(id))) || CIE.normalize(CIE.clone(window.CIE_SAMPLE || CIE.blankWorkspace('Sample')));
     applyTheme();
     window.addEventListener('hashchange', route);
     route();
@@ -1949,6 +2593,8 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
 
   const ctx = (CIE.ctx = {
     get ws() { return ws; },
+    // Call after changing ws.datasets so the large tables are rewritten too.
+    saveDatasets(msg) { ws._dsDirty = true; this.save(msg); },
     save(msg) {
       const ok = CIE.saveWorkspace(ws);
       if (!ok) CIE.toast('Browser storage is unavailable — export to keep your edits');
@@ -1957,8 +2603,8 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
     },
     rerender() { renderPage(); },
     go(id) { location.hash = '#/' + id; },
-    switchWorkspace(id) {
-      const next = CIE.loadWorkspace(id);
+    async switchWorkspace(id) {
+      const next = await CIE.loadWorkspace(id);
       if (!next) return;
       ws = next;
       CIE.prefs.workspace = id;
@@ -1968,6 +2614,7 @@ window.CIE_US_STATES={"AL":{"n":"Alabama","d":"M648,492.4L651.8,491.5L651.9,491L
     },
     replaceWorkspace(next) {
       ws = CIE.normalize(next);
+      if (ws.datasets && Object.keys(ws.datasets).length) ws._dsDirty = true;
       CIE.saveWorkspace(ws);
       CIE.prefs.workspace = ws.id;
       CIE.savePrefs();

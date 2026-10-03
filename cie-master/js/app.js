@@ -6,16 +6,17 @@
   let ws = null;
   let current = null;
 
-  function boot() {
+  async function boot() {
     // First run: seed the generic sample engagement.
     let list = CIE.listWorkspaces();
     if (!list.length && window.CIE_SAMPLE) {
       const s = CIE.normalize(CIE.clone(window.CIE_SAMPLE));
+      s._dsDirty = true;
       CIE.saveWorkspace(s);
       list = CIE.listWorkspaces();
     }
     const id = CIE.prefs.workspace && list.find((w) => w.id === CIE.prefs.workspace) ? CIE.prefs.workspace : list[0] && list[0].id;
-    ws = (id && CIE.loadWorkspace(id)) || CIE.normalize(CIE.clone(window.CIE_SAMPLE || CIE.blankWorkspace('Sample')));
+    ws = (id && (await CIE.loadWorkspace(id))) || CIE.normalize(CIE.clone(window.CIE_SAMPLE || CIE.blankWorkspace('Sample')));
     applyTheme();
     window.addEventListener('hashchange', route);
     route();
@@ -29,6 +30,8 @@
 
   const ctx = (CIE.ctx = {
     get ws() { return ws; },
+    // Call after changing ws.datasets so the large tables are rewritten too.
+    saveDatasets(msg) { ws._dsDirty = true; this.save(msg); },
     save(msg) {
       const ok = CIE.saveWorkspace(ws);
       if (!ok) CIE.toast('Browser storage is unavailable — export to keep your edits');
@@ -37,8 +40,8 @@
     },
     rerender() { renderPage(); },
     go(id) { location.hash = '#/' + id; },
-    switchWorkspace(id) {
-      const next = CIE.loadWorkspace(id);
+    async switchWorkspace(id) {
+      const next = await CIE.loadWorkspace(id);
       if (!next) return;
       ws = next;
       CIE.prefs.workspace = id;
@@ -48,6 +51,7 @@
     },
     replaceWorkspace(next) {
       ws = CIE.normalize(next);
+      if (ws.datasets && Object.keys(ws.datasets).length) ws._dsDirty = true;
       CIE.saveWorkspace(ws);
       CIE.prefs.workspace = ws.id;
       CIE.savePrefs();

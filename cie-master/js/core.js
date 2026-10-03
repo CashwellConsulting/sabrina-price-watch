@@ -111,6 +111,7 @@
       glossary: [],
       decisions: [],
       custom: [],
+      datasets: {},
     };
   };
 
@@ -135,13 +136,48 @@
 
   /* ---------------- workspace persistence ---------------- */
   CIE.listWorkspaces = () => store.get(KEY_INDEX, []);
-  CIE.loadWorkspace = (id) => {
+  // Large tables (ws.datasets, e.g. thousands of facilities) live in IndexedDB; the rest in localStorage.
+  const idb = (CIE.idb = {
+    db: null,
+    open() {
+      if (this.db) return Promise.resolve(this.db);
+      return new Promise((res) => {
+        try {
+          const rq = indexedDB.open('cie-master', 1);
+          rq.onupgradeneeded = () => rq.result.createObjectStore('datasets');
+          rq.onsuccess = () => res((this.db = rq.result));
+          rq.onerror = () => res(null);
+        } catch (e) { res(null); }
+      });
+    },
+    async get(k) {
+      const db = await this.open();
+      if (!db) return undefined;
+      return new Promise((res) => { try { const r = db.transaction('datasets').objectStore('datasets').get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); } catch (e) { res(undefined); } });
+    },
+    async set(k, v) {
+      const db = await this.open();
+      if (!db) return false;
+      return new Promise((res) => { try { const t = db.transaction('datasets', 'readwrite'); t.objectStore('datasets').put(v, k); t.oncomplete = () => res(true); t.onerror = () => res(false); } catch (e) { res(false); } });
+    },
+    async del(k) {
+      const db = await this.open();
+      if (!db) return;
+      try { db.transaction('datasets', 'readwrite').objectStore('datasets').delete(k); } catch (e) { /* ignore */ }
+    },
+  });
+  CIE.loadWorkspace = async (id) => {
     const ws = store.get(wsKey(id), null);
-    return ws ? CIE.normalize(ws) : null;
+    if (!ws) return null;
+    if (ws.hasDatasets) ws.datasets = (await idb.get(id)) || {};
+    return CIE.normalize(ws);
   };
   CIE.saveWorkspace = function (ws) {
     ws.updatedAt = new Date().toISOString();
-    const ok = store.set(wsKey(ws.id), ws);
+    const { datasets, _dsDirty, ...rest } = ws;
+    rest.hasDatasets = !!(datasets && Object.keys(datasets).length);
+    if (rest.hasDatasets && _dsDirty) { idb.set(ws.id, datasets); delete ws._dsDirty; }
+    const ok = store.set(wsKey(ws.id), rest);
     const idx = CIE.listWorkspaces().filter((w) => w.id !== ws.id);
     idx.push({ id: ws.id, name: ws.name });
     store.set(KEY_INDEX, idx);
@@ -149,6 +185,7 @@
   };
   CIE.deleteWorkspace = function (id) {
     store.del(wsKey(id));
+    idb.del(id);
     store.set(KEY_INDEX, CIE.listWorkspaces().filter((w) => w.id !== id));
   };
   CIE.prefs = store.get(KEY_PREFS, {});
@@ -259,6 +296,7 @@
 
   /* ---------------- UI helpers ---------------- */
   CIE.toast = function (msg) {
+    document.querySelectorAll('.toast').forEach((n) => n.remove());
     const t = document.createElement('div');
     t.className = 'toast';
     t.textContent = msg;

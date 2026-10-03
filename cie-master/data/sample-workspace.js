@@ -86,6 +86,37 @@
     });
   }
 
+
+  // Fictional hospital infection data so the Facility quality (HAI) tab can be explored before any import.
+  const measures = [
+    { key: 'clabsi', name: 'CLABSI', full: 'Central line-associated bloodstream infection', denom: 'central-line days', per: 1000, cost: [45000, 55000, 65000] },
+    { key: 'cauti', name: 'CAUTI', full: 'Catheter-associated urinary tract infection', denom: 'catheter days', per: 1000, cost: [900, 5000, 13800] },
+    { key: 'ssi_colon', name: 'SSI colon', full: 'Surgical site infection — colon surgery', denom: 'procedures', per: 100, cost: [20000, 28000, 36000] },
+    { key: 'ssi_hyst', name: 'SSI hyst', full: 'Surgical site infection — abdominal hysterectomy', denom: 'procedures', per: 100, cost: [15000, 20000, 26000] },
+    { key: 'mrsa', name: 'MRSA', full: 'MRSA bacteremia', denom: 'patient days', per: 10000, cost: [30000, 42000, 55000] },
+    { key: 'cdi', name: 'C. diff', full: 'Clostridioides difficile infection', denom: 'patient days', per: 10000, cost: [9000, 17000, 24000] },
+  ];
+  const hosp = ['General Hospital', 'Regional Medical Center', 'University Hospital', 'Community Hospital', 'Memorial Hospital'];
+  const facilities = [];
+  for (let i = 0; i < 60; i++) {
+    const c = pick(cities), beds = int(90, 900), m = {};
+    measures.forEach((ms) => {
+      if (rnd() < 0.1) return;
+      const pred = +(beds * ({ clabsi: 0.025, cauti: 0.03, ssi_colon: 0.012, ssi_hyst: 0.004, mrsa: 0.015, cdi: 0.06 }[ms.key]) * (0.6 + rnd() * 0.8)).toFixed(2);
+      const sir = +(0.3 + rnd() * rnd() * 2.2).toFixed(3);
+      const obs = Math.round(pred * sir);
+      const denom = Math.round(beds * ({ clabsi: 45, cauti: 40, ssi_colon: 0.6, ssi_hyst: 0.4, mrsa: 300, cdi: 280 }[ms.key]));
+      m[ms.key] = [obs, pred, pred ? +(obs / pred).toFixed(3) : null, denom];
+    });
+    facilities.push({
+      id: 'F' + (1000 + i), name: pick(first) + ' ' + pick(hosp), city: c[1], state: c[0], type: 'Acute Care Hospitals',
+      owner: pick(['Voluntary non-profit - Private', 'Government - Local', 'Proprietary']), rating: int(1, 5), leapfrog: pick(['A', 'B', 'C', 'C', 'D', '']),
+      hac: +(rnd() * 1.2 - 0.4).toFixed(3), hacPenalty: rnd() < 0.25, beds, cc: Math.round(beds * (0.1 + rnd() * 0.2)), icu: Math.round(beds * 0.06),
+      priority: +(40 + rnd() * 50).toFixed(1), wedge: pick(['Central-line maintenance bundle', 'Catheter removal prompts', 'Peri-operative SSI surveillance']),
+      whyNow: pick(['HAC payment reduction this fiscal year', 'Two measures above national benchmark', 'New CNO prioritising infection prevention', '']), m,
+    });
+  }
+
   window.CIE_SAMPLE = {
     id: 'ws_sample',
     schema: 1,
@@ -219,5 +250,6 @@
       { topic: 'Pricing', question: 'Plan at the low or high price?', call: 'Plan at $2,400 per user; the higher price must be earned.', why: 'Time savings alone support ~$1,500 at a 3× return.', confidence: 'Medium-low', effect: 'Planning price set to $2,400.', status: 'Open', mine: '' },
     ],
     custom: [],
+    datasets: { quality: { title: 'Hospital-acquired infections (fictional sample)', source: 'Generated sample data — not real hospitals', period: '2025 sample year', measures, rows: facilities } },
   };
 })();

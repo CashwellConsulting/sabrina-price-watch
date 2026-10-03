@@ -54,7 +54,11 @@
             <div class="table-wrap"><table><tbody>${list.map((w) => `<tr><td>${w.id === ws.id ? '<b>' + esc(w.name) + '</b> <span class="tag">open</span>' : esc(w.name)}</td><td class="r">${w.id !== ws.id ? `<button class="btn sm" data-open="${esc(w.id)}">Open</button> <button class="btn sm danger" data-delws="${esc(w.id)}">Delete</button>` : ''}</td></tr>`).join('')}</tbody></table></div>
             <div class="row" style="margin-top:10px"><button class="btn primary" id="newBlank">+ New blank engagement</button><button class="btn" id="newSample">+ New from sample</button><button class="btn" id="dup">Duplicate this one</button></div>
             <h3 style="margin:18px 0 8px">Save & export</h3>
-            <div class="row"><button class="btn primary" id="exp">Export workspace (.json)</button><label class="btn">Import workspace<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="btn" id="expAcc">Accounts CSV</button></div>
+            <div class="row"><button class="btn primary" id="exp">Export workspace (.json)</button><label class="btn">Import workspace (.json)<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="btn" id="expAcc">Accounts CSV</button></div>
+            <h3 style="margin:18px 0 8px">Import an existing CIE file</h3>
+            <p class="small ink2">Pick one of your original single-file CIEs (.html). Its accounts, scores, sources, glossary, decisions and any facility infection (HAI) table become a new engagement. The file is read in this browser only — nothing is uploaded, and its scripts are not run.</p>
+            <label class="btn primary">Choose a CIE .html file…<input type="file" id="impHtml" accept=".html,.htm,text/html" hidden></label>
+            <p class="small muted" style="margin-top:8px">Recognised layouts: ${CIE.importers.map((a) => esc(a.label)).join(' · ')}.</p>
             <p class="small muted" style="margin-top:8px">Import adds the file as a new engagement; it never overwrites one you have. Browser storage is per browser and per file location — clearing site data erases it, so export after each working session.</p></div>
         </div>
 
@@ -108,6 +112,27 @@
             w.name = (w.name || 'Imported') + (list.find((x) => x.name === w.name) ? ' (imported)' : '');
             create(w);
           } catch (err) { CIE.modal('Could not import', `<p>${esc(err.message)}</p>`); }
+        };
+        rd.readAsText(f);
+      };
+      root.querySelector('#impHtml').onchange = (e) => {
+        const f = e.target.files[0];
+        if (!f) return;
+        CIE.toast('Reading ' + f.name + '…');
+        const rd = new FileReader();
+        rd.onload = () => {
+          setTimeout(() => {
+            try {
+              const { ws: w, adapter } = CIE.importCIE(rd.result, f.name);
+              const Q = w.datasets && w.datasets.quality;
+              create(w);
+              CIE.modal('Imported', `<p><b>${esc(w.name)}</b> was created with the ${esc(adapter.label.toLowerCase())} layout.</p><ul class="ink2">
+                <li>${w.accounts.length} accounts · ${w.segments.length} segments · ${w.dimensions.length} scoring dimensions</li>
+                ${Q ? `<li>${Q.rows.length.toLocaleString()} facilities with ${Q.measures.length} infection measures — open <b>Facility quality (HAI)</b></li>` : ''}
+                <li>${w.sources.length} sources · ${w.glossary.length} glossary terms · ${w.decisions.length} decisions · ${(w.diligence || []).length} diligence items</li></ul>
+                <p class="small muted">Review the scoring dimensions in the Scoring workbench — imported scores keep their original evidence status where the file recorded one.</p>`, Q ? [{ label: 'Open HAI data', primary: true, run() { ctx.go('quality'); } }] : []);
+            } catch (err) { CIE.modal('Could not import', `<p>${esc(err.message)}</p>`); }
+          }, 30);
         };
         rd.readAsText(f);
       };

@@ -13,6 +13,7 @@ deal mechanics, geography) into a single engine with pluggable modules and multi
 | Account Intelligence | Overview | Start-here call, headline counts, top 15 (fit + evidence tick), stage and segment mix, findings|
 | | Target accounts | Lens presets, filters, ranked table, CSV export; account drawer with score parts and evidence status, buyer, outreach checklist (auto-downgrade), relationship overlay, value calculator and price curve|
 | | Geography | Real US map (Albers), shaded by count or fit, account dots by segment|
+| | Facility quality (HAI) | Every facility's infection data — observed, predicted, SIR, excess cases, denominators, rates — for CLABSI, CAUTI, SSI colon, SSI hysterectomy, MRSA and C. diff; filters, pooled SIRs, CSV, and a full-screen **Present** view (← → to page, Print / PDF) |
 | | Scoring workbench | Edit dimensions and weights; live rank movement|
 | Market & Revenue | Market model | Low / Base / High by segment, expansion segments kept out of totals, named-account check, seller-capacity model|
 | | Buyer economics | Value streams (counted / not counted), year 1 / steady state / 3-year, pricing scenarios with payback|
@@ -22,6 +23,21 @@ deal mechanics, geography) into a single engine with pluggable modules and multi
 | | Deal mechanics | MEDDPICC evidence per account, deal health, stalled-deal plays|
 | Knowledge | Decision log, Diligence queue, Sources, Glossary | The calls with confidence and your override; questions; dated sources; glossary|
 | Workspace | Data & modules | Engagements (new / duplicate / import / export / delete), segments, lenses, module on/off, **add your own module**|
+
+## Importing an existing CIE
+
+Data & modules → **Import an existing CIE file** reads an original single-file CIE (.html) in the browser
+and creates a new engagement from it: accounts, scores with their evidence status, segments, sources,
+glossary, decisions, diligence items and — where present — the full facility infection (HAI) table.
+Nothing is uploaded and the file's scripts are never run; data blocks are parsed as data.
+
+Recognised layouts (by structure, not by company): facility infection-quality table (`FACILITIES`),
+researched-cohort JSON (`cie-data`), account-model JSON (`model-data`), network owner data (`DATA` sites/groups),
+and account universe (`ACCOUNTS` with score components). Add a layout with `CIE.registerImporter({ id, label, detect, convert })`
+in `js/importers.js`.
+
+Large tables are stored in the browser's IndexedDB; everything else in localStorage. Both stay on your machine.
+HAI excess cases = Σ max(0, observed − predicted) across measures.
 
 ## Scoring (same rules as the originals)
 
@@ -67,7 +83,7 @@ then rebuild. Shared helpers: `CIE.rank`, `CIE.score`, `CIE.openAccount`, `CIE.v
 ## Build and test
 
 ```bash
-python3 cie-master/tools/build.py      # → cie-master/dist/CIE_Master.html (single file, ~260 KB)
+python3 cie-master/tools/build.py      # → cie-master/dist/CIE_Master.html (single file, ~310 KB)
 ```
 
 Python 3 standard library only. During development you can also open `index.html` directly.
@@ -78,7 +94,8 @@ Python 3 standard library only. During development you can also open `index.html
 cie-master/
   index.html          app shell (development entry point)
   css/app.css         tokens (light + dark), layout, components
-  js/core.js          storage, workspace model, registry, scoring
+  js/core.js          storage (localStorage + IndexedDB), workspace model, registry, scoring
+  js/importers.js     read original CIE files into workspaces
   js/charts.js        inline-SVG charts + map projection
   js/app.js           sidebar, routing, theme, drawer
   js/modules/*.js     one file per module group
