@@ -4,7 +4,7 @@
   'use strict';
 
   const CIE = (window.CIE = window.CIE || {});
-  CIE.version = '1.0.0';
+  CIE.version = '1.1.0';
   CIE.modules = [];
   CIE.groups = [
     { id: 'intel', title: 'Account Intelligence' },

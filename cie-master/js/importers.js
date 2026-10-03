@@ -322,6 +322,35 @@
     },
   });
 
+  /* ---------- anonymisation ----------
+     Some source companies must never appear on screen. Their names are matched by hash so the real
+     name is not written anywhere in this code; matching text is replaced throughout the workspace. */
+  const fnv = (str) => { let h = 0x811c9dc5; for (const c of String(str).toLowerCase()) { h ^= c.charCodeAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16); };
+  const ALIASES = { d10305b5: 'Lumen Bedside AI' };
+  const brandOf = (fileName) => String(fileName || '').replace(/^[0-9a-f]{8}-/i, '').split(/[_\s.-]/)[0];
+  function replaceDeep(o, re, to) {
+    if (typeof o === 'string') return o.replace(re, to);
+    if (Array.isArray(o)) { for (let i = 0; i < o.length; i++) o[i] = replaceDeep(o[i], re, to); return o; }
+    if (o && typeof o === 'object') { for (const k of Object.keys(o)) o[k] = replaceDeep(o[k], re, to); return o; }
+    return o;
+  }
+  // Applies to fresh imports and to workspaces imported by an earlier version. Returns true if changed.
+  CIE.anonymize = function (ws) {
+    const file = ws.importedFrom && ws.importedFrom.file;
+    const brand = brandOf(file);
+    const alias = brand && ALIASES[fnv(brand)];
+    if (!alias) return false;
+    const re = new RegExp(brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    const { datasets, ...rest } = ws;
+    replaceDeep(rest, re, alias);
+    Object.assign(ws, rest);
+    if (datasets) replaceDeep(datasets, re, alias);
+    ws.importedFrom.file = ws.importedFrom.file.replace(re, alias);
+    ws.company = alias;
+    ws.name = alias + ' (demo)';
+    return true;
+  };
+
   /* ---------- entry point ---------- */
   CIE.importCIE = function (html, fileName) {
     const name = String(fileName || 'Imported CIE').replace(/\.(html?|json)$/i, '').replace(/^[0-9a-f]{8}-/i, '').replace(/_/g, ' ').replace(/\s*(Commercial Intelligence Engine|CIE)\b.*$/i, '').trim() || 'Imported CIE';
@@ -331,6 +360,7 @@
     ws.name = name + ' (imported)';
     ws.importedFrom = { file: fileName, adapter: a.id, at: new Date().toISOString() };
     ws.accounts.forEach((acc) => CIE.enforceStage(acc));
+    CIE.anonymize(ws);
     return { ws, adapter: a };
   };
 })();

@@ -9,6 +9,12 @@
   async function boot() {
     // First run: seed the generic sample engagement.
     let list = CIE.listWorkspaces();
+    // Rename any engagement imported before anonymisation existed.
+    for (const w of list) {
+      const full = await CIE.loadWorkspace(w.id);
+      if (full && CIE.anonymize && CIE.anonymize(full)) { full._dsDirty = true; CIE.saveWorkspace(full); }
+    }
+    list = CIE.listWorkspaces();
     if (!list.length && window.CIE_SAMPLE) {
       const s = CIE.normalize(CIE.clone(window.CIE_SAMPLE));
       s._dsDirty = true;
